@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Template</title>
+
+<style>
+  :root {
+    --bg: #eaf6ff;
+    --primary: #4da3ff;
+    --primary-dark: #2d7dd2;
+    --card: rgba(255,255,255,0.7);
+    --text: #1a2a3a;
+    --shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+
+  * {
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  }
+
+  body {
+    margin: 0;
+    background: linear-gradient(135deg, #d8ecff, #f4fbff);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* HEADER / LOGO AREA */
+  header {
+    text-align: center;
+    padding: 40px 20px 20px;
+  }
+
+  .logo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+    border-radius: 20px;
+    background: white;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--primary);
+    font-size: 18px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+  }
+
+  .subtitle {
+    opacity: 0.7;
+    font-size: 14px;
+  }
+
+  /* MAIN CONTENT */
+  main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 500px;
+    background: var(--card);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+
+/* BUTTON ROW (single line) */
+.button-row {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+/* BUTTON STYLE */
+.btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 140px;
+  aspect-ratio: 1 / 1; /* 🔥 THIS makes it a square */
+
+  border-radius: 18px;
+  border: none;
+  background: var(--primary);
+  color: white;
+
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: 0.2s ease;
+  padding: 12px;
+}
+/* BIG ICON */
+.btn img {
+  width: 64px;   /* bigger icon */
+  height: 64px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+/* HOVER EFFECT */
+.btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-3px);
+}
+
+/* OPTIONAL secondary */
+.btn.secondary {
+  background: white;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+/* ICON INSIDE BUTTON */
+.btn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* OPTIONAL secondary style */
+.btn.secondary {
+  background: white;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 15px;
+    font-size: 12px;
+    opacity: 0.6;
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">
+    <img src="logo.png" style="width:80%;height:auto;">
+  </div>
+  <h1>Tool Box Checks</h1>
+  <div class="subtitle">Prins Greenhouses</div>
+</header>
+
+<main>
+<div class="button-row">
+
+  <button class="btn" onclick="location.href='checklist.html'">
+    <img src="Tool Box Logo.png">
+    <span>Tool Box Check List</span>
+  </button>
+
+  <button class="btn" onclick="location.href='broken.html'">
+    <img src="Broken Tool.jpg">
+    <span>Broken Tools</span>
+  </button>
+
+  <button class="btn" onclick="location.href='history.html'">
+    <img src="Log.jpg">
+    <span>Past Checks</span>
+  </button>
+
+</div>
+</main>
+
+<footer>
+  © 2026 Prins Greenhouses
+</footer>
+
+</body>
+</html>
