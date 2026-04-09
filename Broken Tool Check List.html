@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tool Checklist Log</title>
+  <style>
+    :root {
+      --bg: #eaf6ff;
+      --primary: #4da3ff;
+      --primary-dark: #2d7dd2;
+      --card: rgba(255,255,255,0.72);
+      --text: #1a2a3a;
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --line: rgba(26,42,58,0.12);
+      --good: #1d8f5f;
+      --danger: #c63b5d;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #092B9C, #2DA0ED);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      text-align: center;
+      padding: 28px 20px 18px;
+    }
+
+    .topbar {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .logo {
+      width: min(340px, 78vw);
+      height: min(340px, 78vw);
+      margin: 0 auto 15px;
+      border-radius: 20px;
+      background: #57a4f2;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    .logo img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #fff;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    main {
+      flex: 1;
+      padding: 24px 16px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page-wrap {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      justify-items: center;
+    }
+
+    .container,
+    .log-panel {
+      width: min(920px, 100%);
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .card-subtitle {
+      margin: 0 0 18px;
+      opacity: 0.75;
+      font-size: 14px;
+    }
+
+    .entry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .field input[type="text"],
+    .field input[type="date"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 15px;
+      background: rgba(255,255,255,0.88);
+      color: var(--text);
+      outline: none;
+    }
+
+    .field input[type="text"]:focus,
+    .field input[type="date"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(77,163,255,.18);
+    }
+
+    .category {
+      max-width: 760px;
+      margin: 0 auto 24px;
+    }
+
+    .category h3 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 17px;
+      color: var(--text);
+    }
+
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .check-item {
+      display: grid;
+      grid-template-columns: auto 1fr 84px;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 58px;
+    }
+
+    .check-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-dark);
+      margin: 0;
+    }
+
+    .check-item span {
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .qty {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+    }
+
+    .check-item.missing {
+      background: #ffe7ec;
+      border-color: #e7a3b5;
+    }
+
+    .check-item.missing span {
+      color: #a12f4b;
+      font-weight: 700;
+    }
+
+    .check-item.complete {
+      background: rgba(255,255,255,0.74);
+      border-color: var(--line);
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(12px, 2vw, 24px);
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 1000px;
+      margin: 24px auto 0;
+    }
+
+    .btn {
+      width: clamp(140px, 18vw, 190px);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 18px;
+      border: none;
+      border-radius: 24px;
+      background: #57a4f2;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(60,120,190,.18);
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 36px rgba(60,120,190,.22);
+    }
+
+    .btn span {
+      font-size: clamp(14px, 1.2vw, 18px);
+      font-weight: 700;
+      line-height: 1.2;
+      max-width: 90%;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .status {
+      margin-top: 18px;
+      min-height: 22px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .log-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .log-count {
+      font-size: 14px;
+      opacity: .75;
+    }
+
+    .log-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .log-item {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .log-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .serial {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #dcebff;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 4px 6px 0 0;
+      border: 1px solid rgba(77,163,255,.25);
+    }
+
+    .meta {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    .small-title {
+      margin: 10px 0 6px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--primary-dark);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 26px 18px;
+      border: 1px dashed rgba(26,42,58,0.18);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.45);
+      font-size: 14px;
+      opacity: .85;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      opacity: 0.85;
+      color: rgba(255,255,255,0.92);
+    }
+
+    @media (max-width: 900px) {
+      .entry-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .checklist-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 22px 16px 12px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      main {
+        padding: 16px 12px 32px;
+      }
+
+      .container,
+      .log-panel {
+        padding: 16px;
+      }
+
+      .btn {
+        width: 100%;
+        aspect-ratio: auto;
+        min-height: 74px;
+        border-radius: 18px;
+      }
+
+      .check-item {
+        grid-template-columns: auto 1fr;
+      }
+
+      .qty {
+        grid-column: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="logo.png" alt="Logo">
+    </div>
+
+    <div class="topbar">
+      <button class="btn secondary" style="width:auto;aspect-ratio:auto;padding:14px 24px;" onclick="location.href='index.html'">
+        <span>Return Home</span>
+      </button>
+    </div>
+
+    <h1>Broken Tool Checklist</h1>
+    <div class="subtitle">Inspection form, Saved log, and Log Export</div>
+  </header>
+
+  <main>
+    <div class="page-wrap">
+      <section class="container">
+        <h2 class="card-title">Broken Tools</h2>
+        <p class="card-subtitle">Check items, adjust quantity, and add the current inspection to the running log.</p>
+
+        <div class="entry-grid">
+          <div class="field">
+            <label for="serialNumber">Tool Box Serial Number</label>
+            <input id="serialNumber" type="text" placeholder="Enter serial number">
+          </div>
+
+          <div class="field">
+            <label for="crewMember">Crew Member Name</label>
+            <input id="crewMember" type="text" placeholder="Enter crew member name">
+          </div>
+
+          <div class="field">
+            <label for="entryDate">Date</label>
+            <input id="entryDate" type="date">
+          </div>
+        </div>
+
+        <div id="brokentoolChecklist">
+
+          <div class="category">
+            <h3>PPE / Safety</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="Hard Hat With Prins Logo">
+                <span>Hard Hat With Prins Logo</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Safety glasses - CLEAR">
+                <span>Safety glasses - CLEAR</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Safety glasses - TINTED">
+                <span>Safety glasses - TINTED</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Contractor Harness (safety harness)">
+                <span>Contractor Harness (safety harness)</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Shock Absorbing Lanyard for safety harness">
+                <span>Shock Absorbing Lanyard for safety harness</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="10’ retractable lanyard for safety harness">
+                <span>10’ retractable lanyard for safety harness</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Storage / Bags</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="Milwaukee PACKOUT Rolling Toolbox">
+                <span>Milwaukee PACKOUT Rolling Toolbox</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Milwaukee PACKOUT Organizer">
+                <span>Milwaukee PACKOUT Organizer</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Milwaukee Contractor Bag">
+                <span>Milwaukee Contractor Bag</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Power Tools</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value='Milwaukee M18 GEN 3 FUEL 1/2" Drill Driver'>
+                <span>Milwaukee M18 GEN 3 FUEL 1/2" Drill Driver</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Milwaukee M18 GEN 3 FUEL 1/4" Hex Impact Driver'>
+                <span>Milwaukee M18 GEN 3 FUEL 1/4" Hex Impact Driver</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Milwaukee M18 FUEL 4-1/2"/5" Grinder'>
+                <span>Milwaukee M18 FUEL 4-1/2"/5" Grinder</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Batteries & Charging</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="Milwaukee M18 & M12 multi-voltage charger">
+                <span>Milwaukee M18 &amp; M12 multi-voltage charger</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Milwaukee M18 REDLITHIUM 5Ah Battery">
+                <span>Milwaukee M18 REDLITHIUM 5Ah Battery</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Hand Tools</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="24 Oz. White Rubber Mallet (hammer)">
+                <span>24 Oz. White Rubber Mallet (hammer)</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Claw Hammer, large">
+                <span>Claw Hammer, large</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Sledgehammer 3Lbs">
+                <span>Sledgehammer 3Lbs</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="36-inch FATMAX Wrecking Bar">
+                <span>36-inch FATMAX Wrecking Bar</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Measuring & Layout</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="7” Square">
+                <span>7” Square</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Tape measure 7m (25')">
+                <span>Tape measure 7m (25')</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Cutting & Pliers</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value='Cobra Water Pump Pliers 10" (Channel Lock Pliers)'>
+                <span>Cobra Water Pump Pliers 10" (Channel Lock Pliers)</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='9" Pliers for nylon wire'>
+                <span>9" Pliers for nylon wire</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Metal snips">
+                <span>Metal snips</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Wire Rope Cutters">
+                <span>Wire Rope Cutters</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Drill Bits</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="Jobber drill bit, high speed ⌀4.0mm">
+                <span>Jobber drill bit, high speed ⌀4.0mm</span>
+                <input type="number" class="qty" min="0" step="1" value="10">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Jobber drill bit, high speed ⌀5.0mm">
+                <span>Jobber drill bit, high speed ⌀5.0mm</span>
+                <input type="number" class="qty" min="0" step="1" value="10">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Jobber drill bit, high speed ⌀6.5mm">
+                <span>Jobber drill bit, high speed ⌀6.5mm</span>
+                <input type="number" class="qty" min="0" step="1" value="10">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Jobber drill bit, high speed ⌀8.5mm">
+                <span>Jobber drill bit, high speed ⌀8.5mm</span>
+                <input type="number" class="qty" min="0" step="1" value="10">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Jobber drill bit, high speed ⌀10.5mm">
+                <span>Jobber drill bit, high speed ⌀10.5mm</span>
+                <input type="number" class="qty" min="0" step="1" value="5">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Step drill 1/4" to 1-3/8"'>
+                <span>Step drill 1/4" to 1-3/8"</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Sockets & Bits</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value='3/8" Socket 10 mm'>
+                <span>3/8" Socket 10 mm</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='3/8" Socket 13 mm'>
+                <span>3/8" Socket 13 mm</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Impact Tough 3/8" socket adapter'>
+                <span>Impact Tough 3/8" socket adapter</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Impact Tough 2-9/16" x 5/16" (nut setter)'>
+                <span>Impact Tough 2-9/16" x 5/16" (nut setter)</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Impact Tough 2-9/16" x 3/8" (nut setter)'>
+                <span>Impact Tough 2-9/16" x 3/8" (nut setter)</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Impact Tough 2-9/16" x 10mm (nut setter)'>
+                <span>Impact Tough 2-9/16" x 10mm (nut setter)</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Impact Tough 2-9/16" x 13mm (nut setter)'>
+                <span>Impact Tough 2-9/16" x 13mm (nut setter)</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='Impact Tough 2" square #2 Pow (Robertson bit)'>
+                <span>Impact Tough 2" square #2 Pow (Robertson bit)</span>
+                <input type="number" class="qty" min="0" step="1" value="5">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value='ALLAN KEY - Hex 6mm Power Bit x 2"'>
+                <span>ALLAN KEY - Hex 6mm Power Bit x 2"</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="ALLAN KEY - Hex 6mm T-Handle x 150mm">
+                <span>ALLAN KEY - Hex 6mm T-Handle x 150mm</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Wrenches</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="Wrench, 10 mm">
+                <span>Wrench, 10 mm</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Wrench, 13 mm">
+                <span>Wrench, 13 mm</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Wrench, 17 mm">
+                <span>Wrench, 17 mm</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Wrench, 19 mm">
+                <span>Wrench, 19 mm</span>
+                <input type="number" class="qty" min="0" step="1" value="2">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Consumables</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="400mL - lubricating/ rust-proof spray">
+                <span>400mL - lubricating/ rust-proof spray</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Set of extra blades for knife">
+                <span>Set of extra blades for knife</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="category">
+            <h3>Misc</h3>
+            <div class="checklist-grid">
+              <label class="check-item">
+                <input type="checkbox" value="Pencil with sharpener">
+                <span>Pencil with sharpener</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+              <label class="check-item">
+                <input type="checkbox" value="Knife">
+                <span>Knife</span>
+                <input type="number" class="qty" min="0" step="1" value="1">
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="button-row">
+          <button class="btn" onclick="addEntry()"><span>Add Entry to Log</span></button>
+          <button class="btn secondary" onclick="clearChecklist()"><span>Clear Checklist</span></button>
+<button class="btn" onclick="checkAllItems()"><span>Tool Kit Complete</span></button>
+          
+        </div>
+
+        <div class="status" id="statusMsg"></div>
+      </section>
+
+      <section class="log-panel">
+        <div class="log-head">
+          <div>
+            <h2 class="card-title" style="margin-bottom:4px;">Inspection Log</h2>
+            <div class="log-count" id="logCount">0 entries saved</div>
+          </div>
+        </div>
+        <div class="log-list" id="logList"></div>
+<div class="button-row">
+<button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
+      </section>
+    </div>
+  </main>
+
+  <footer>Tool Checklist Log</footer>
+
+  <script>
+    const CHECKLIST_STATE_KEY = 'toolChecklistState';
+    const LOG_STORAGE_KEY = 'toolChecklistLog';
+
+    const serialNumberEl = document.getElementById('serialNumber');
+    const crewMemberEl = document.getElementById('crewMember');
+    const entryDateEl = document.getElementById('entryDate');
+    const logListEl = document.getElementById('logList');
+    const logCountEl = document.getElementById('logCount');
+    const statusMsgEl = document.getElementById('statusMsg');
+
+    entryDateEl.value = new Date().toISOString().split('T')[0];
+
+    function getChecklistItems() {
+      return [...document.querySelectorAll('.check-item')];
+    }
+
+    function sanitizeQtyInput(input) {
+      let value = parseInt(input.value, 10);
+      if (isNaN(value) || value < 0) value = 0;
+      input.value = value;
+      return value;
+    }
+
+    function updateChecklistState() {
+      getChecklistItems().forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const qty = item.querySelector('.qty');
+        const qtyValue = sanitizeQtyInput(qty);
+
+        item.classList.remove('missing', 'complete');
+
+        if (checkbox.checked && qtyValue > 0) {
+          item.classList.add('complete');
+        } else {
+          item.classList.add('missing');
+        }
+      });
+    }
+
+    function showStatus(message, isError = false) {
+      statusMsgEl.textContent = message;
+      statusMsgEl.style.color = isError ? 'var(--danger)' : 'var(--good)';
+      if (message) {
+        setTimeout(() => {
+          if (statusMsgEl.textContent === message) {
+            statusMsgEl.textContent = '';
+          }
+        }, 2500);
+      }
+    }
+
+    function clearChecklist() {
+      getChecklistItems().forEach(item => {
+        item.querySelector('input[type="checkbox"]').checked = false;
+        item.querySelector('.qty').value = 1;
+      });
+      serialNumberEl.value = '';
+      crewMemberEl.value = '';
+      entryDateEl.value = new Date().toISOString().split('T')[0];
+      updateChecklistState();
+      showStatus('Checklist cleared.');
+    }
+
+    function saveChecklistState() {
+      const state = {
+        serialNumber: serialNumberEl.value.trim(),
+        crewMember: crewMemberEl.value.trim(),
+        entryDate: entryDateEl.value,
+        items: getChecklistItems().map(item => {
+          const checkbox = item.querySelector('input[type="checkbox"]');
+          const qty = item.querySelector('.qty');
+          return {
+            name: checkbox.value,
+            checked: checkbox.checked,
+            qty: sanitizeQtyInput(qty)
+          };
+        })
+      };
+
+      localStorage.setItem(CHECKLIST_STATE_KEY, JSON.stringify(state));
+      showStatus('Checklist saved.');
+    }
+
+    function loadChecklistState() {
+      const raw = localStorage.getItem(CHECKLIST_STATE_KEY);
+      if (!raw) {
+        showStatus('No saved checklist found.', true);
+        return;
+      }
+
+      try {
+        const state = JSON.parse(raw);
+        serialNumberEl.value = state.serialNumber || '';
+        crewMemberEl.value = state.crewMember || '';
+        entryDateEl.value = state.entryDate || new Date().toISOString().split('T')[0];
+
+        const map = new Map((state.items || []).map(item => [item.name, item]));
+
+        getChecklistItems().forEach(item => {
+          const checkbox = item.querySelector('input[type="checkbox"]');
+          const qty = item.querySelector('.qty');
+          const saved = map.get(checkbox.value);
+
+          if (saved) {
+            checkbox.checked = !!saved.checked;
+            qty.value = Number.isFinite(saved.qty) ? saved.qty : 1;
+          }
+        });
+
+        updateChecklistState();
+        showStatus('Checklist loaded.');
+      } catch {
+        showStatus('Saved checklist could not be loaded.', true);
+      }
+    }
+
+    function getLog() {
+      try {
+        return JSON.parse(localStorage.getItem(LOG_STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveLog(log) {
+      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(log));
+    }
+
+    function collectFormData() {
+  const serialNumber = serialNumberEl.value.trim();
+  const crewMember = crewMemberEl.value.trim();
+  const entryDate = entryDateEl.value;
+
+  const missingItems = getChecklistItems()
+    .map(item => {
+      const checkbox = item.querySelector('input[type="checkbox"]');
+      const qty = item.querySelector('.qty');
+      return {
+        name: checkbox.value,
+        checked: checkbox.checked,
+        qty: sanitizeQtyInput(qty)
+      };
+    })
+    .filter(item => !item.checked || item.qty === 0)
+    .map(item => ({
+      name: item.name,
+      qty: item.qty
+    }));
+
+  return { serialNumber, crewMember, entryDate, missingItems };
+}
+
+    function addEntry() {
+      const { serialNumber, crewMember, entryDate, missingItems } = collectFormData();
+
+      if (!serialNumber || !crewMember || !entryDate) {
+        showStatus('Please fill in serial number, crew member name, and date.', true);
+        return;
+      }
+
+    const entry = {
+  id: Date.now(),
+  serialNumber,
+  crewMember,
+  entryDate,
+  missingItems,
+  createdAt: new Date().toISOString()
+};
+
+      const log = getLog();
+      log.unshift(entry);
+      saveLog(log);
+      renderLog();
+      saveChecklistState();
+      showStatus('Entry added to log.');
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderLog() {
+      const log = getLog();
+      logCountEl.textContent = `${log.length} entr${log.length === 1 ? 'y' : 'ies'} saved`;
+
+      if (!log.length) {
+        logListEl.innerHTML = '<div class="empty">No entries yet. Add your first checklist entry.</div>';
+        return;
+      }
+
+      logListEl.innerHTML = log.map(entry => {
+        const missing = entry.missingItems?.length
+  ? entry.missingItems.map(item =>
+      `<span class="pill">${escapeHtml(item.name)}${item.qty > 1 ? ` × ${item.qty}` : ''}</span>`
+    ).join('')
+  : '<div class="meta"><strong>Complete</strong></div>';
+
+        return `
+          <div class="log-item">
+            <div class="log-item-top">
+              <div class="serial">${escapeHtml(entry.serialNumber)}</div>
+              <span class="pill">${escapeHtml(entry.entryDate)}</span>
+            </div>
+            <div class="meta"><strong>Crew Member:</strong> ${escapeHtml(entry.crewMember)}</div>
+            <div class="small-title">Missing Items</div>
+<div>${missing}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? '');
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function downloadCSV() {
+      const log = getLog();
+
+      if (!log.length) {
+        showStatus('There are no log entries to download yet.', true);
+        return;
+      }
+
+      const headers = [
+        'Tool Box Serial Number',
+        'Crew Member Name',
+        'Date',
+        'Checked Items',
+        'Created At'
+      ];
+
+    const rows = log.map(entry => {
+  const missingItems = entry.missingItems || [];
+  const checklistStatus = missingItems.length
+    ? missingItems.map(item => `${item.name}${item.qty > 1 ? ` x${item.qty}` : ''}`).join(' | ')
+    : 'Complete';
+
+  return [
+    entry.serialNumber,
+    entry.crewMember,
+    entry.entryDate,
+    checklistStatus,
+    entry.createdAt
+  ];
+});
+
+      const csvContent = [headers, ...rows]
+        .map(row => row.map(csvEscape).join(','))
+        .join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `tool_checklist_log_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showStatus('CSV downloaded.');
+    }
+
+    document.addEventListener('change', function(e) {
+      if (e.target.matches('input[type="checkbox"], .qty')) {
+        updateChecklistState();
+      }
+    });
+
+    document.addEventListener('input', function(e) {
+      if (e.target.matches('.qty')) {
+        updateChecklistState();
+      }
+    });
+
+    document.addEventListener('blur', function(e) {
+      if (e.target.matches('.qty')) {
+        sanitizeQtyInput(e.target);
+        updateChecklistState();
+      }
+    }, true);
+
+    updateChecklistState();
+    renderLog();
+
+
+  function checkAllItems() {
+    getChecklistItems().forEach(item => {
+      const checkbox = item.querySelector('input[type="checkbox"]');
+      const qty = item.querySelector('.qty');
+
+      checkbox.checked = true;
+
+      if (!qty.value || Number(qty.value) < 1) {
+        qty.value = 1;
+      }
+    });
+
+    updateChecklistState();
+    showStatus('All items checked.');
+  }
+
+  </script>
+</body>
+</html>
