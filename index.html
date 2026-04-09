@@ -22,7 +22,7 @@
 
   body {
     margin: 0;
-    background: linear-gradient(135deg, #d8ecff, #f4fbff);
+    background: linear-gradient(135deg, #092B9C, #2DA0ED);
     color: var(--text);
     display: flex;
     flex-direction: column;
@@ -36,11 +36,11 @@
   }
 
   .logo {
-    width: 120px;
-    height: 120px;
+    width: 375px;
+    height: 375px;
     margin: 0 auto 15px;
     border-radius: 20px;
-    background: white;
+    background: #57a4f2;
     box-shadow: var(--shadow);
     display: flex;
     align-items: center;
@@ -87,54 +87,54 @@
 }
 
 /* BUTTON STYLE */
-.btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  width: 140px;
-  aspect-ratio: 1 / 1; /* 🔥 THIS makes it a square */
-
-  border-radius: 18px;
-  border: none;
-  background: var(--primary);
-  color: white;
-
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: 0.2s ease;
-  padding: 12px;
-}
-/* BIG ICON */
-.btn img {
-  width: 64px;   /* bigger icon */
-  height: 64px;
-  object-fit: contain;
-  margin-bottom: 8px;
-}
-/* HOVER EFFECT */
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-3px);
+.button-row{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:clamp(16px, 2vw, 28px);
+  flex-wrap:wrap;
+  width:100%;
+  max-width:1100px;
+  margin:40px auto 0;
 }
 
-/* OPTIONAL secondary */
-.btn.secondary {
-  background: white;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+.btn{
+  width:clamp(160px, 22vw, 240px);
+  aspect-ratio:1 / 1;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+
+  padding:18px;
+  border:none;
+  border-radius:24px;
+  background:#57a4f2;
+  color:#fff;
+  box-shadow:0 12px 30px rgba(60,120,190,.18);
+  cursor:pointer;
+  transition:transform .2s ease, box-shadow .2s ease, background .2s ease;
+  text-align:center;
 }
 
-/* ICON INSIDE BUTTON */
-.btn img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+.btn:hover{
+  transform:translateY(-4px);
+  box-shadow:0 18px 36px rgba(60,120,190,.22);
+}
+
+.btn img{
+  width:clamp(56px, 7vw, 88px);
+  height:clamp(56px, 7vw, 88px);
+  object-fit:contain;
+}
+
+.btn span{
+  font-size:clamp(14px, 1.2vw, 18px);
+  font-weight:700;
+  line-height:1.2;
+  max-width:90%;
 }
 
 /* OPTIONAL secondary style */
@@ -151,6 +151,9 @@
     font-size: 12px;
     opacity: 0.6;
   }
+
+
+
 </style>
 </head>
 
@@ -173,12 +176,12 @@
   </button>
 
   <button class="btn" onclick="location.href='broken.html'">
-    <img src="Broken Tool.jpg">
+    <img src="Broken Tool.png">
     <span>Broken Tools</span>
   </button>
 
   <button class="btn" onclick="location.href='history.html'">
-    <img src="Log.jpg">
+    <img src="Log.png">
     <span>Past Checks</span>
   </button>
 
