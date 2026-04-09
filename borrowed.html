@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tool Checklist Log</title>
+  <style>
+    :root {
+      --bg: #eaf6ff;
+      --primary: #4da3ff;
+      --primary-dark: #2d7dd2;
+      --card: rgba(255,255,255,0.72);
+      --text: #1a2a3a;
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --line: rgba(26,42,58,0.12);
+      --good: #1d8f5f;
+      --danger: #c63b5d;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #092B9C, #2DA0ED);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      text-align: center;
+      padding: 28px 20px 18px;
+    }
+
+    .topbar {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .logo {
+      width: min(340px, 78vw);
+      height: min(340px, 78vw);
+      margin: 0 auto 15px;
+      border-radius: 20px;
+      background: #57a4f2;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    .logo img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #fff;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    main {
+      flex: 1;
+      padding: 24px 16px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page-wrap {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      justify-items: center;
+    }
+
+    .container,
+    .log-panel {
+      width: min(920px, 100%);
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      margin: 0 0 8px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .card-subtitle {
+      margin: 0 0 18px;
+      opacity: 0.75;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .entry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .field input[type="text"],
+    .field input[type="date"],
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 15px;
+      background: rgba(255,255,255,0.88);
+      color: var(--text);
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(77,163,255,.18);
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      width: 100%;
+      margin: 24px auto 0;
+    }
+
+    .btn {
+      width: clamp(140px, 18vw, 190px);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 18px;
+      border: none;
+      border-radius: 24px;
+      background: #57a4f2;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(60,120,190,.18);
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 36px rgba(60,120,190,.22);
+    }
+
+    .btn span {
+      font-size: clamp(14px, 1.2vw, 18px);
+      font-weight: 700;
+      line-height: 1.2;
+      max-width: 90%;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .status {
+      margin-top: 18px;
+      min-height: 22px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .log-head {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+
+    .log-count {
+      font-size: 14px;
+      opacity: .75;
+    }
+
+    .log-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .log-item {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .log-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .serial {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #dcebff;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 4px 6px 0 0;
+      border: 1px solid rgba(77,163,255,.25);
+    }
+
+    .meta {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    .small-title {
+      margin: 10px 0 6px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--primary-dark);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 26px 18px;
+      border: 1px dashed rgba(26,42,58,0.18);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.45);
+      font-size: 14px;
+      opacity: .85;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      opacity: 0.85;
+      color: rgba(255,255,255,0.92);
+    }
+
+    @media (max-width: 900px) {
+      .entry-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 22px 16px 12px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      main {
+        padding: 16px 12px 32px;
+      }
+
+      .container,
+      .log-panel {
+        padding: 16px;
+      }
+
+      .btn {
+        width: 100%;
+        aspect-ratio: auto;
+        min-height: 74px;
+        border-radius: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="logo.png" alt="Logo">
+    </div>
+
+    <div class="topbar">
+      <button class="btn secondary" style="width:auto;aspect-ratio:auto;padding:14px 24px;" onclick="location.href='index.html'">
+        <span>Return Home</span>
+      </button>
+    </div>
+
+    <h1>Borrowed Tools</h1>
+    <div class="subtitle">Tool Kits Loaned to Contractors</div>
+  </header>
+
+  <main>
+    <div class="page-wrap">
+      <section class="container">
+        <h2 class="card-title">Borrowed Tool Kits</h2>
+        <p class="card-subtitle">Track loaned tool kits and add records to the running log.</p>
+
+        <div class="entry-grid">
+          <div class="field">
+            <label for="serialNumber">Tool Kit Serial Number</label>
+            <input id="serialNumber" type="text" placeholder="Enter serial number">
+          </div>
+
+          <div class="field">
+            <label for="crewMember">Crew Member Name</label>
+            <input id="crewMember" type="text" placeholder="Enter crew member name">
+          </div>
+
+          <div class="field">
+            <label for="project">Project</label>
+            <input id="project" type="text" placeholder="Enter project name/number">
+          </div>
+
+          <div class="field">
+            <label for="dateLoaned">Date Loaned Out</label>
+            <input id="dateLoaned" type="date">
+          </div>
+
+          <div class="field">
+            <label for="dateReturned">Date Returned</label>
+            <input id="dateReturned" type="date">
+          </div>
+
+          <div class="field">
+            <label for="condition">Condition</label>
+            <select id="condition" name="condition">
+              <option value="">Select condition</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Missing Tools">Missing Tools</option>
+              <option value="Lost">Lost</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="btn" onclick="addEntry()"><span>Add Entry to Log</span></button>
+          <button class="btn secondary" onclick="clearForm()"><span>Clear Form</span></button>
+        </div>
+
+        <div class="status" id="statusMsg"></div>
+      </section>
+
+      <section class="log-panel">
+        <div class="log-head">
+          <div>
+            <h2 class="card-title" style="margin-bottom:4px;">Inspection Log</h2>
+            <div class="log-count" id="logCount">0 entries saved</div>
+          </div>
+        </div>
+
+        <div class="log-list" id="logList"></div>
+
+        <div class="button-row">
+          <button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>Borrowed Tool Kit Tracking</footer>
+
+  <script>
+    const STORAGE_KEY = "borrowedToolLog";
+
+    function getEntries() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveEntries(entries) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    function setStatus(message, isError = false) {
+      const status = document.getElementById("statusMsg");
+      status.textContent = message;
+      status.style.color = isError ? "#c63b5d" : "#1d8f5f";
+    }
+
+    function clearForm() {
+      document.getElementById("serialNumber").value = "";
+      document.getElementById("crewMember").value = "";
+      document.getElementById("project").value = "";
+      document.getElementById("dateLoaned").value = "";
+      document.getElementById("dateReturned").value = "";
+      document.getElementById("condition").value = "";
+      setStatus("Form cleared.");
+    }
+
+    function addEntry() {
+      const serialNumber = document.getElementById("serialNumber").value.trim();
+      const crewMember = document.getElementById("crewMember").value.trim();
+      const project = document.getElementById("project").value.trim();
+      const dateLoaned = document.getElementById("dateLoaned").value;
+      const dateReturned = document.getElementById("dateReturned").value;
+      const condition = document.getElementById("condition").value;
+
+      if (!serialNumber || !crewMember || !project || !dateLoaned || !condition) {
+        setStatus("Please fill in all required fields.", true);
+        return;
+      }
+
+      const entries = getEntries();
+
+      entries.unshift({
+        serialNumber,
+        crewMember,
+        project,
+        dateLoaned,
+        dateReturned,
+        condition,
+        createdAt: new Date().toISOString()
+      });
+
+      saveEntries(entries);
+      renderLog();
+      clearForm();
+      setStatus("Entry added to log.");
+    }
+
+    function renderLog() {
+      const logList = document.getElementById("logList");
+      const logCount = document.getElementById("logCount");
+      const entries = getEntries();
+
+      logCount.textContent = `${entries.length} entr${entries.length === 1 ? "y" : "ies"} saved`;
+
+      if (!entries.length) {
+        logList.innerHTML = `<div class="empty">No log entries yet.</div>`;
+        return;
+      }
+
+      logList.innerHTML = entries.map(entry => `
+        <div class="log-item">
+          <div class="log-item-top">
+            <div class="serial">${escapeHtml(entry.serialNumber)}</div>
+            <div class="pill">${escapeHtml(entry.condition)}</div>
+          </div>
+
+          <div class="meta"><strong>Crew Member:</strong> ${escapeHtml(entry.crewMember)}</div>
+          <div class="meta"><strong>Project:</strong> ${escapeHtml(entry.project)}</div>
+          <div class="meta"><strong>Date Loaned:</strong> ${escapeHtml(entry.dateLoaned)}</div>
+          <div class="meta"><strong>Date Returned:</strong> ${escapeHtml(entry.dateReturned || "-")}</div>
+        </div>
+      `).join("");
+    }
+
+    function downloadCSV() {
+      const entries = getEntries();
+
+      if (!entries.length) {
+        setStatus("There are no log entries to download.", true);
+        return;
+      }
+
+      const headers = [
+        "Tool Kit Serial Number",
+        "Crew Member Name",
+        "Project",
+        "Date Loaned Out",
+        "Date Returned",
+        "Condition",
+        "Created At"
+      ];
+
+      const rows = entries.map(entry => [
+        entry.serialNumber,
+        entry.crewMember,
+        entry.project,
+        entry.dateLoaned,
+        entry.dateReturned || "",
+        entry.condition,
+        entry.createdAt || ""
+      ]);
+
+      const csv = [
+        headers,
+        ...rows
+      ].map(row =>
+        row.map(value => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")
+      ).join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const today = new Date().toISOString().slice(0, 10);
+
+      a.href = url;
+      a.download = `borrowed-tools-log-${today}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setStatus("CSV downloaded.");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    renderLog();
+  </script>
+</body>
+</html>
