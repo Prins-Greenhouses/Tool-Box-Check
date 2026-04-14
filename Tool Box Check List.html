@@ -133,7 +133,8 @@
     }
 
     .field input[type="text"],
-    .field input[type="date"] {
+    .field input[type="date"],
+    .field select {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -143,19 +144,10 @@
       color: var(--text);
       outline: none;
     }
-    .field select {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 14px 16px;
-  font-size: 15px;
-  background: rgba(255,255,255,0.88);
-  color: var(--text);
-  outline: none;
-}
 
     .field input[type="text"]:focus,
-    .field input[type="date"]:focus {
+    .field input[type="date"]:focus,
+    .field select:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(77,163,255,.18);
     }
@@ -299,6 +291,31 @@
       opacity: .75;
     }
 
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+      align-items: end;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-inline {
+      width: auto;
+      aspect-ratio: auto;
+      min-height: 50px;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 14px;
+      box-shadow: 0 8px 22px rgba(60,120,190,.14);
+    }
+
     .log-list {
       display: grid;
       gap: 14px;
@@ -374,7 +391,8 @@
     }
 
     @media (max-width: 900px) {
-      .entry-grid {
+      .entry-grid,
+      .filter-grid {
         grid-template-columns: 1fr;
       }
 
@@ -443,26 +461,8 @@
         <div class="entry-grid">
           <div class="field">
             <label for="serialNumber">Tool Box Serial Number</label>
-            <select id="serialNumber" onchange="autoFillCrew()">
-              <option value="">Select Tool Box Number</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="9">9</option>
-              <option value="10">10</option>
-              <option value="11">11</option>
-              <option value="12">12</option>
-              <option value="13">13</option>
-              <option value="14">14</option>
-              <option value="15">15</option>
-            </select>
+            <input id="serialNumber" type="text" placeholder="Enter serial number">
           </div>
-
 
           <div class="field">
             <label for="crewMember">Crew Member Name</label>
@@ -480,312 +480,120 @@
           <div class="category">
             <h3>PPE / Safety</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="Hard Hat With Prins Logo">
-                <span>Hard Hat With Prins Logo</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Safety glasses - CLEAR">
-                <span>Safety glasses - CLEAR</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Safety glasses - TINTED">
-                <span>Safety glasses - TINTED</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Contractor Harness (safety harness)">
-                <span>Contractor Harness (safety harness)</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Shock Absorbing Lanyard for safety harness">
-                <span>Shock Absorbing Lanyard for safety harness</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="10’ retractable lanyard for safety harness">
-                <span>10’ retractable lanyard for safety harness</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value="Hard Hat With Prins Logo"><span>Hard Hat With Prins Logo</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Safety glasses - CLEAR"><span>Safety glasses - CLEAR</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Safety glasses - TINTED"><span>Safety glasses - TINTED</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Contractor Harness (safety harness)"><span>Contractor Harness (safety harness)</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Shock Absorbing Lanyard for safety harness"><span>Shock Absorbing Lanyard for safety harness</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="10’ retractable lanyard for safety harness"><span>10’ retractable lanyard for safety harness</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Storage / Bags</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="Milwaukee PACKOUT Rolling Toolbox">
-                <span>Milwaukee PACKOUT Rolling Toolbox</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Milwaukee PACKOUT Organizer">
-                <span>Milwaukee PACKOUT Organizer</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Milwaukee Contractor Bag">
-                <span>Milwaukee Contractor Bag</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value="Milwaukee PACKOUT Rolling Toolbox"><span>Milwaukee PACKOUT Rolling Toolbox</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Milwaukee PACKOUT Organizer"><span>Milwaukee PACKOUT Organizer</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Milwaukee Contractor Bag"><span>Milwaukee Contractor Bag</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Power Tools</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value='Milwaukee M18 GEN 3 FUEL 1/2" Drill Driver'>
-                <span>Milwaukee M18 GEN 3 FUEL 1/2" Drill Driver</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Milwaukee M18 GEN 3 FUEL 1/4" Hex Impact Driver'>
-                <span>Milwaukee M18 GEN 3 FUEL 1/4" Hex Impact Driver</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Milwaukee M18 FUEL 4-1/2"/5" Grinder'>
-                <span>Milwaukee M18 FUEL 4-1/2"/5" Grinder</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value='Milwaukee M18 GEN 3 FUEL 1/2" Drill Driver'><span>Milwaukee M18 GEN 3 FUEL 1/2" Drill Driver</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value='Milwaukee M18 GEN 3 FUEL 1/4" Hex Impact Driver'><span>Milwaukee M18 GEN 3 FUEL 1/4" Hex Impact Driver</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value='Milwaukee M18 FUEL 4-1/2"/5" Grinder'><span>Milwaukee M18 FUEL 4-1/2"/5" Grinder</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Batteries & Charging</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="Milwaukee M18 & M12 multi-voltage charger">
-                <span>Milwaukee M18 &amp; M12 multi-voltage charger</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Milwaukee M18 REDLITHIUM 5Ah Battery">
-                <span>Milwaukee M18 REDLITHIUM 5Ah Battery</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
+              <label class="check-item"><input type="checkbox" value="Milwaukee M18 & M12 multi-voltage charger"><span>Milwaukee M18 &amp; M12 multi-voltage charger</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Milwaukee M18 REDLITHIUM 5Ah Battery"><span>Milwaukee M18 REDLITHIUM 5Ah Battery</span><input type="number" class="qty" min="0" step="1" value="2"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Hand Tools</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="24 Oz. White Rubber Mallet (hammer)">
-                <span>24 Oz. White Rubber Mallet (hammer)</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Claw Hammer, large">
-                <span>Claw Hammer, large</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Sledgehammer 3Lbs">
-                <span>Sledgehammer 3Lbs</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="36-inch FATMAX Wrecking Bar">
-                <span>36-inch FATMAX Wrecking Bar</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value="24 Oz. White Rubber Mallet (hammer)"><span>24 Oz. White Rubber Mallet (hammer)</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Claw Hammer, large"><span>Claw Hammer, large</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Sledgehammer 3Lbs"><span>Sledgehammer 3Lbs</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="36-inch FATMAX Wrecking Bar"><span>36-inch FATMAX Wrecking Bar</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Measuring & Layout</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="7” Square">
-                <span>7” Square</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Tape measure 7m (25')">
-                <span>Tape measure 7m (25')</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value="7” Square"><span>7” Square</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Tape measure 7m (25')"><span>Tape measure 7m (25')</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Cutting & Pliers</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value='Cobra Water Pump Pliers 10" (Channel Lock Pliers)'>
-                <span>Cobra Water Pump Pliers 10" (Channel Lock Pliers)</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='9" Pliers for nylon wire'>
-                <span>9" Pliers for nylon wire</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Metal snips">
-                <span>Metal snips</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Wire Rope Cutters">
-                <span>Wire Rope Cutters</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value='Cobra Water Pump Pliers 10" (Channel Lock Pliers)'><span>Cobra Water Pump Pliers 10" (Channel Lock Pliers)</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value='9" Pliers for nylon wire'><span>9" Pliers for nylon wire</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Metal snips"><span>Metal snips</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Wire Rope Cutters"><span>Wire Rope Cutters</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Drill Bits</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="Jobber drill bit, high speed ⌀4.0mm">
-                <span>Jobber drill bit, high speed ⌀4.0mm</span>
-                <input type="number" class="qty" min="0" step="1" value="10">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Jobber drill bit, high speed ⌀5.0mm">
-                <span>Jobber drill bit, high speed ⌀5.0mm</span>
-                <input type="number" class="qty" min="0" step="1" value="10">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Jobber drill bit, high speed ⌀6.5mm">
-                <span>Jobber drill bit, high speed ⌀6.5mm</span>
-                <input type="number" class="qty" min="0" step="1" value="10">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Jobber drill bit, high speed ⌀8.5mm">
-                <span>Jobber drill bit, high speed ⌀8.5mm</span>
-                <input type="number" class="qty" min="0" step="1" value="10">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Jobber drill bit, high speed ⌀10.5mm">
-                <span>Jobber drill bit, high speed ⌀10.5mm</span>
-                <input type="number" class="qty" min="0" step="1" value="5">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Step drill 1/4" to 1-3/8"'>
-                <span>Step drill 1/4" to 1-3/8"</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value="Jobber drill bit, high speed ⌀4.0mm"><span>Jobber drill bit, high speed ⌀4.0mm</span><input type="number" class="qty" min="0" step="1" value="10"></label>
+              <label class="check-item"><input type="checkbox" value="Jobber drill bit, high speed ⌀5.0mm"><span>Jobber drill bit, high speed ⌀5.0mm</span><input type="number" class="qty" min="0" step="1" value="10"></label>
+              <label class="check-item"><input type="checkbox" value="Jobber drill bit, high speed ⌀6.5mm"><span>Jobber drill bit, high speed ⌀6.5mm</span><input type="number" class="qty" min="0" step="1" value="10"></label>
+              <label class="check-item"><input type="checkbox" value="Jobber drill bit, high speed ⌀8.5mm"><span>Jobber drill bit, high speed ⌀8.5mm</span><input type="number" class="qty" min="0" step="1" value="10"></label>
+              <label class="check-item"><input type="checkbox" value="Jobber drill bit, high speed ⌀10.5mm"><span>Jobber drill bit, high speed ⌀10.5mm</span><input type="number" class="qty" min="0" step="1" value="5"></label>
+              <label class="check-item"><input type="checkbox" value='Step drill 1/4" to 1-3/8"'><span>Step drill 1/4" to 1-3/8"</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Sockets & Bits</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value='3/8" Socket 10 mm'>
-                <span>3/8" Socket 10 mm</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='3/8" Socket 13 mm'>
-                <span>3/8" Socket 13 mm</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Impact Tough 3/8" socket adapter'>
-                <span>Impact Tough 3/8" socket adapter</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Impact Tough 2-9/16" x 5/16" (nut setter)'>
-                <span>Impact Tough 2-9/16" x 5/16" (nut setter)</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Impact Tough 2-9/16" x 3/8" (nut setter)'>
-                <span>Impact Tough 2-9/16" x 3/8" (nut setter)</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Impact Tough 2-9/16" x 10mm (nut setter)'>
-                <span>Impact Tough 2-9/16" x 10mm (nut setter)</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Impact Tough 2-9/16" x 13mm (nut setter)'>
-                <span>Impact Tough 2-9/16" x 13mm (nut setter)</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='Impact Tough 2" square #2 Pow (Robertson bit)'>
-                <span>Impact Tough 2" square #2 Pow (Robertson bit)</span>
-                <input type="number" class="qty" min="0" step="1" value="5">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value='ALLAN KEY - Hex 6mm Power Bit x 2"'>
-                <span>ALLAN KEY - Hex 6mm Power Bit x 2"</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="ALLAN KEY - Hex 6mm T-Handle x 150mm">
-                <span>ALLAN KEY - Hex 6mm T-Handle x 150mm</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value='3/8" Socket 10 mm'><span>3/8" Socket 10 mm</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value='3/8" Socket 13 mm'><span>3/8" Socket 13 mm</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value='Impact Tough 3/8" socket adapter'><span>Impact Tough 3/8" socket adapter</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value='Impact Tough 2-9/16" x 5/16" (nut setter)'><span>Impact Tough 2-9/16" x 5/16" (nut setter)</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value='Impact Tough 2-9/16" x 3/8" (nut setter)'><span>Impact Tough 2-9/16" x 3/8" (nut setter)</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value='Impact Tough 2-9/16" x 10mm (nut setter)'><span>Impact Tough 2-9/16" x 10mm (nut setter)</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value='Impact Tough 2-9/16" x 13mm (nut setter)'><span>Impact Tough 2-9/16" x 13mm (nut setter)</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value='Impact Tough 2" square #2 Pow (Robertson bit)'><span>Impact Tough 2" square #2 Pow (Robertson bit)</span><input type="number" class="qty" min="0" step="1" value="5"></label>
+              <label class="check-item"><input type="checkbox" value='ALLAN KEY - Hex 6mm Power Bit x 2"'><span>ALLAN KEY - Hex 6mm Power Bit x 2"</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="ALLAN KEY - Hex 6mm T-Handle x 150mm"><span>ALLAN KEY - Hex 6mm T-Handle x 150mm</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Wrenches</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="Wrench, 10 mm">
-                <span>Wrench, 10 mm</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Wrench, 13 mm">
-                <span>Wrench, 13 mm</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Wrench, 17 mm">
-                <span>Wrench, 17 mm</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Wrench, 19 mm">
-                <span>Wrench, 19 mm</span>
-                <input type="number" class="qty" min="0" step="1" value="2">
-              </label>
+              <label class="check-item"><input type="checkbox" value="Wrench, 10 mm"><span>Wrench, 10 mm</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value="Wrench, 13 mm"><span>Wrench, 13 mm</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value="Wrench, 17 mm"><span>Wrench, 17 mm</span><input type="number" class="qty" min="0" step="1" value="2"></label>
+              <label class="check-item"><input type="checkbox" value="Wrench, 19 mm"><span>Wrench, 19 mm</span><input type="number" class="qty" min="0" step="1" value="2"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Consumables</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="400mL - lubricating/ rust-proof spray">
-                <span>400mL - lubricating/ rust-proof spray</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Set of extra blades for knife">
-                <span>Set of extra blades for knife</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value="400mL - lubricating/ rust-proof spray"><span>400mL - lubricating/ rust-proof spray</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Set of extra blades for knife"><span>Set of extra blades for knife</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
           <div class="category">
             <h3>Misc</h3>
             <div class="checklist-grid">
-              <label class="check-item">
-                <input type="checkbox" value="Pencil with sharpener">
-                <span>Pencil with sharpener</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
-              <label class="check-item">
-                <input type="checkbox" value="Knife">
-                <span>Knife</span>
-                <input type="number" class="qty" min="0" step="1" value="1">
-              </label>
+              <label class="check-item"><input type="checkbox" value="Pencil with sharpener"><span>Pencil with sharpener</span><input type="number" class="qty" min="0" step="1" value="1"></label>
+              <label class="check-item"><input type="checkbox" value="Knife"><span>Knife</span><input type="number" class="qty" min="0" step="1" value="1"></label>
             </div>
           </div>
 
@@ -794,8 +602,7 @@
         <div class="button-row">
           <button class="btn" onclick="addEntry()"><span>Add Entry to Log</span></button>
           <button class="btn secondary" onclick="clearChecklist()"><span>Clear Checklist</span></button>
-<button class="btn" onclick="checkAllItems()"><span>Tool Kit Complete</span></button>
-          
+          <button class="btn" onclick="checkAllItems()"><span>Tool Kit Complete</span></button>
         </div>
 
         <div class="status" id="statusMsg"></div>
@@ -805,12 +612,35 @@
         <div class="log-head">
           <div>
             <h2 class="card-title" style="margin-bottom:4px;">Inspection Log</h2>
-            <div class="log-count" id="logCount">0 entries saved</div>
+            <div class="log-count" id="logCount">0 entries shown</div>
           </div>
         </div>
+
+        <div class="filter-grid">
+          <div class="field">
+            <label for="filterDate">Filter by Date</label>
+            <input id="filterDate" type="date">
+          </div>
+          <div class="field">
+            <label for="filterToolBox">Filter by Tool Box Number</label>
+            <select id="filterToolBox">
+              <option value="">All Tool Boxes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Filter Actions</label>
+            <div class="filter-actions">
+              <button class="btn secondary btn-inline" onclick="clearFilters()"><span>Clear Filters</span></button>
+            </div>
+          </div>
+        </div>
+
         <div class="log-list" id="logList"></div>
-<div class="button-row">
-<button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
+
+        <div class="button-row">
+          <button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
+          <button class="btn" onclick="emailFilteredCSV()"><span>Email Filtered CSV</span></button>
+        </div>
       </section>
     </div>
   </main>
@@ -827,6 +657,8 @@
     const logListEl = document.getElementById('logList');
     const logCountEl = document.getElementById('logCount');
     const statusMsgEl = document.getElementById('statusMsg');
+    const filterDateEl = document.getElementById('filterDate');
+    const filterToolBoxEl = document.getElementById('filterToolBox');
 
     entryDateEl.value = new Date().toISOString().split('T')[0];
 
@@ -865,7 +697,7 @@
           if (statusMsgEl.textContent === message) {
             statusMsgEl.textContent = '';
           }
-        }, 2500);
+        }, 3200);
       }
     }
 
@@ -903,10 +735,7 @@
 
     function loadChecklistState() {
       const raw = localStorage.getItem(CHECKLIST_STATE_KEY);
-      if (!raw) {
-        showStatus('No saved checklist found.', true);
-        return;
-      }
+      if (!raw) return;
 
       try {
         const state = JSON.parse(raw);
@@ -928,7 +757,6 @@
         });
 
         updateChecklistState();
-        showStatus('Checklist loaded.');
       } catch {
         showStatus('Saved checklist could not be loaded.', true);
       }
@@ -947,28 +775,28 @@
     }
 
     function collectFormData() {
-  const serialNumber = serialNumberEl.value.trim();
-  const crewMember = crewMemberEl.value.trim();
-  const entryDate = entryDateEl.value;
+      const serialNumber = serialNumberEl.value.trim();
+      const crewMember = crewMemberEl.value.trim();
+      const entryDate = entryDateEl.value;
 
-  const missingItems = getChecklistItems()
-    .map(item => {
-      const checkbox = item.querySelector('input[type="checkbox"]');
-      const qty = item.querySelector('.qty');
-      return {
-        name: checkbox.value,
-        checked: checkbox.checked,
-        qty: sanitizeQtyInput(qty)
-      };
-    })
-    .filter(item => !item.checked || item.qty === 0)
-    .map(item => ({
-      name: item.name,
-      qty: item.qty
-    }));
+      const missingItems = getChecklistItems()
+        .map(item => {
+          const checkbox = item.querySelector('input[type="checkbox"]');
+          const qty = item.querySelector('.qty');
+          return {
+            name: checkbox.value,
+            checked: checkbox.checked,
+            qty: sanitizeQtyInput(qty)
+          };
+        })
+        .filter(item => !item.checked || item.qty === 0)
+        .map(item => ({
+          name: item.name,
+          qty: item.qty
+        }));
 
-  return { serialNumber, crewMember, entryDate, missingItems };
-}
+      return { serialNumber, crewMember, entryDate, missingItems };
+    }
 
     function addEntry() {
       const { serialNumber, crewMember, entryDate, missingItems } = collectFormData();
@@ -978,14 +806,14 @@
         return;
       }
 
-    const entry = {
-  id: Date.now(),
-  serialNumber,
-  crewMember,
-  entryDate,
-  missingItems,
-  createdAt: new Date().toISOString()
-};
+      const entry = {
+        id: Date.now(),
+        serialNumber,
+        crewMember,
+        entryDate,
+        missingItems,
+        createdAt: new Date().toISOString()
+      };
 
       const log = getLog();
       log.unshift(entry);
@@ -1004,21 +832,50 @@
         .replace(/'/g, '&#039;');
     }
 
-    function renderLog() {
+    function getFilteredLog() {
       const log = getLog();
-      logCountEl.textContent = `${log.length} entr${log.length === 1 ? 'y' : 'ies'} saved`;
+      const filterDate = filterDateEl.value;
+      const filterToolBox = filterToolBoxEl.value.trim().toLowerCase();
 
-      if (!log.length) {
-        logListEl.innerHTML = '<div class="empty">No entries yet. Add your first checklist entry.</div>';
+      return log.filter(entry => {
+        const matchesDate = !filterDate || entry.entryDate === filterDate;
+        const matchesToolBox = !filterToolBox || String(entry.serialNumber || '').trim().toLowerCase() === filterToolBox;
+        return matchesDate && matchesToolBox;
+      });
+    }
+
+    function populateToolBoxFilter(selectedValue = '') {
+      const log = getLog();
+      const serials = [...new Set(
+        log.map(entry => String(entry.serialNumber || '').trim()).filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+      filterToolBoxEl.innerHTML = '<option value="">All Tool Boxes</option>' +
+        serials.map(serial => `<option value="${escapeHtml(serial)}">${escapeHtml(serial)}</option>`).join('');
+
+      if (selectedValue && serials.includes(selectedValue)) {
+        filterToolBoxEl.value = selectedValue;
+      }
+    }
+
+    function renderLog() {
+      const selectedToolBox = filterToolBoxEl.value;
+      populateToolBoxFilter(selectedToolBox);
+
+      const filteredLog = getFilteredLog();
+      logCountEl.textContent = `${filteredLog.length} entr${filteredLog.length === 1 ? 'y' : 'ies'} shown`;
+
+      if (!filteredLog.length) {
+        logListEl.innerHTML = '<div class="empty">No entries match the selected filters.</div>';
         return;
       }
 
-      logListEl.innerHTML = log.map(entry => {
+      logListEl.innerHTML = filteredLog.map(entry => {
         const missing = entry.missingItems?.length
-  ? entry.missingItems.map(item =>
-      `<span class="pill">${escapeHtml(item.name)}${item.qty > 1 ? ` × ${item.qty}` : ''}</span>`
-    ).join('')
-  : '<div class="meta"><strong>Complete</strong></div>';
+          ? entry.missingItems.map(item =>
+              `<span class="pill">${escapeHtml(item.name)}${item.qty > 1 ? ` × ${item.qty}` : ''}</span>`
+            ).join('')
+          : '<div class="meta"><strong>Complete</strong></div>';
 
         return `
           <div class="log-item">
@@ -1028,10 +885,17 @@
             </div>
             <div class="meta"><strong>Crew Member:</strong> ${escapeHtml(entry.crewMember)}</div>
             <div class="small-title">Missing Items</div>
-<div>${missing}</div>
+            <div>${missing}</div>
           </div>
         `;
       }).join('');
+    }
+
+    function clearFilters() {
+      filterDateEl.value = '';
+      filterToolBoxEl.value = '';
+      renderLog();
+      showStatus('Log filters cleared.');
     }
 
     function csvEscape(value) {
@@ -1039,52 +903,111 @@
       return `"${text.replace(/"/g, '""')}"`;
     }
 
-    function downloadCSV() {
-      const log = getLog();
-
-      if (!log.length) {
-        showStatus('There are no log entries to download yet.', true);
-        return;
-      }
-
+    function buildCSVContent(entries) {
       const headers = [
         'Tool Box Serial Number',
         'Crew Member Name',
         'Date',
-        'Checked Items',
+        'Missing Items / Status',
         'Created At'
       ];
 
-    const rows = log.map(entry => {
-  const missingItems = entry.missingItems || [];
-  const checklistStatus = missingItems.length
-    ? missingItems.map(item => `${item.name}${item.qty > 1 ? ` x${item.qty}` : ''}`).join(' | ')
-    : 'Complete';
+      const rows = entries.map(entry => {
+        const missingItems = entry.missingItems || [];
+        const checklistStatus = missingItems.length
+          ? missingItems.map(item => `${item.name}${item.qty > 1 ? ` x${item.qty}` : ''}`).join(' | ')
+          : 'Complete';
 
-  return [
-    entry.serialNumber,
-    entry.crewMember,
-    entry.entryDate,
-    checklistStatus,
-    entry.createdAt
-  ];
-});
+        return [
+          entry.serialNumber,
+          entry.crewMember,
+          entry.entryDate,
+          checklistStatus,
+          entry.createdAt
+        ];
+      });
 
-      const csvContent = [headers, ...rows]
+      return [headers, ...rows]
         .map(row => row.map(csvEscape).join(','))
         .join('\n');
+    }
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    function createCSVBlob(entries) {
+      const csvContent = buildCSVContent(entries);
+      return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    }
+
+    function getExportFileName() {
+      const datePart = filterDateEl.value || 'all-dates';
+      const toolBoxPart = (filterToolBoxEl.value || 'all-tool-boxes').replace(/[^a-z0-9_-]+/gi, '_');
+      return `tool_checklist_log_${toolBoxPart}_${datePart}.csv`;
+    }
+
+    function downloadBlob(blob, fileName) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `tool_checklist_log_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+    }
 
-      showStatus('CSV downloaded.');
+    function downloadCSV() {
+      const filteredLog = getFilteredLog();
+
+      if (!filteredLog.length) {
+        showStatus('There are no filtered log entries to download.', true);
+        return;
+      }
+
+      const blob = createCSVBlob(filteredLog);
+      downloadBlob(blob, getExportFileName());
+      showStatus('Filtered CSV downloaded.');
+    }
+
+    async function emailFilteredCSV() {
+      const filteredLog = getFilteredLog();
+
+      if (!filteredLog.length) {
+        showStatus('There are no filtered log entries to email.', true);
+        return;
+      }
+
+      const fileName = getExportFileName();
+      const blob = createCSVBlob(filteredLog);
+      const file = new File([blob], fileName, { type: 'text/csv' });
+      const subject = 'Tool Checklist Log Export';
+      const body = [
+        'Attached is the filtered Tool Checklist log export.',
+        '',
+        `Date filter: ${filterDateEl.value || 'All dates'}`,
+        `Tool box filter: ${filterToolBoxEl.value || 'All tool boxes'}`,
+        `Entries included: ${filteredLog.length}`
+      ].join('\n');
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: subject,
+            text: body,
+            files: [file]
+          });
+          showStatus('Share sheet opened. Choose your mail app to send the CSV.');
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') {
+            showStatus('Email export canceled.', true);
+            return;
+          }
+        }
+      }
+
+      downloadBlob(blob, fileName);
+      const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + '\n\nThe CSV file has been downloaded. Attach it to this email before sending.')}`;
+      window.location.href = mailto;
+      showStatus('CSV downloaded and mail app opened. Attach the downloaded CSV to send it.');
     }
 
     document.addEventListener('change', function(e) {
@@ -1106,55 +1029,28 @@
       }
     }, true);
 
+    filterDateEl.addEventListener('change', renderLog);
+    filterToolBoxEl.addEventListener('change', renderLog);
+
+    function checkAllItems() {
+      getChecklistItems().forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const qty = item.querySelector('.qty');
+
+        checkbox.checked = true;
+
+        if (!qty.value || Number(qty.value) < 1) {
+          qty.value = 1;
+        }
+      });
+
+      updateChecklistState();
+      showStatus('All items checked.');
+    }
+
+    loadChecklistState();
     updateChecklistState();
     renderLog();
-
-
-  function checkAllItems() {
-    getChecklistItems().forEach(item => {
-      const checkbox = item.querySelector('input[type="checkbox"]');
-      const qty = item.querySelector('.qty');
-
-      checkbox.checked = true;
-
-      if (!qty.value || Number(qty.value) < 1) {
-        qty.value = 1;
-      }
-    });
-
-    updateChecklistState();
-    showStatus('All items checked.');
-  }
-    const toolboxMap = {
-  "1": "David Thiessen",
-  "2": "Janvier Aujero",
-  "3": "SPARE",
-  "4": "SPARE",
-  "5": "Jacob Dekker",
-  "6": "Nick Roussel",
-  "7": "Josh Casten",
-  "8": "SPARE",
-  "9": "Sandra Thiessen",
-  "10": "Jose Noel",
-  "11": "Ken Mustard",
-  "12": "Daniel Nguyen",
-  "13": "SPARE",
-  "14": "Mitchell Kalakaylo",
-  "15": "Philip Stephenson"
-};
-
-function autoFillCrew() {
-  const toolbox = document.getElementById("serialNumber").value;
-  const crewInput = document.getElementById("crewMember");
-
-  if (toolboxMap[toolbox]) {
-    crewInput.value = toolboxMap[toolbox];
-  } else {
-    crewInput.value = "";
-  }
-}
-
-
   </script>
 </body>
 </html>
