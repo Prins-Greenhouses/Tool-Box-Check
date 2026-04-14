@@ -618,8 +618,12 @@
 
         <div class="filter-grid">
           <div class="field">
-            <label for="filterDate">Filter by Date</label>
-            <input id="filterDate" type="date">
+            <label for="filterDate">From Date</label>
+            <input id="filterDateFrom" type="date">
+          </div>
+           <div class="field">
+            <label for="filterDate">TO Date</label>
+            <input id="filterDateTO" type="date">
           </div>
           <div class="field">
             <label for="filterToolBox">Filter by Tool Box Number</label>
@@ -639,7 +643,7 @@
 
         <div class="button-row">
           <button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
-          <button class="btn" onclick="emailFilteredCSV()"><span>Email Filtered CSV</span></button>
+          <button class="btn" onclick="emailFilteredCSV()"><span>Share Filtered CSV</span></button>
         </div>
       </section>
     </div>
@@ -657,7 +661,8 @@
     const logListEl = document.getElementById('logList');
     const logCountEl = document.getElementById('logCount');
     const statusMsgEl = document.getElementById('statusMsg');
-    const filterDateEl = document.getElementById('filterDate');
+   const filterDateFromEl = document.getElementById('filterDateFrom');
+const filterDateToEl = document.getElementById('filterDateTo');
     const filterToolBoxEl = document.getElementById('filterToolBox');
 
     entryDateEl.value = new Date().toISOString().split('T')[0];
@@ -833,16 +838,33 @@
     }
 
     function getFilteredLog() {
-      const log = getLog();
-      const filterDate = filterDateEl.value;
-      const filterToolBox = filterToolBoxEl.value.trim().toLowerCase();
+  const log = getLog();
 
-      return log.filter(entry => {
-        const matchesDate = !filterDate || entry.entryDate === filterDate;
-        const matchesToolBox = !filterToolBox || String(entry.serialNumber || '').trim().toLowerCase() === filterToolBox;
-        return matchesDate && matchesToolBox;
-      });
+  const fromDate = filterDateFromEl.value;
+  const toDate = filterDateToEl.value;
+  const serialFilter = filterSerialEl.value.trim().toLowerCase();
+
+  return log.filter(entry => {
+    let matchesDate = true;
+    let matchesSerial = true;
+
+    // DATE RANGE FILTER
+    if (fromDate) {
+      matchesDate = entry.entryDate >= fromDate;
     }
+
+    if (toDate && matchesDate) {
+      matchesDate = entry.entryDate <= toDate;
+    }
+
+    // TOOL BOX FILTER
+    if (serialFilter) {
+      matchesSerial = entry.serialNumber.toLowerCase().includes(serialFilter);
+    }
+
+    return matchesDate && matchesSerial;
+  });
+}
 
     function populateToolBoxFilter(selectedValue = '') {
       const log = getLog();
