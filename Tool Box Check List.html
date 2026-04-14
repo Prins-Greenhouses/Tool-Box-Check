@@ -842,27 +842,28 @@ const filterDateToEl = document.getElementById('filterDateTo');
 
   const fromDate = filterDateFromEl.value;
   const toDate = filterDateToEl.value;
-  const serialFilter = filterSerialEl.value.trim().toLowerCase();
+  const toolBoxFilter = filterToolBoxEl.value.trim().toLowerCase();
 
   return log.filter(entry => {
     let matchesDate = true;
-    let matchesSerial = true;
+    let matchesToolBox = true;
 
-    // DATE RANGE FILTER
+    // FROM DATE
     if (fromDate) {
       matchesDate = entry.entryDate >= fromDate;
     }
 
+    // TO DATE
     if (toDate && matchesDate) {
       matchesDate = entry.entryDate <= toDate;
     }
 
     // TOOL BOX FILTER
-    if (serialFilter) {
-      matchesSerial = entry.serialNumber.toLowerCase().includes(serialFilter);
+    if (toolBoxFilter) {
+      matchesToolBox = entry.serialNumber.toLowerCase().includes(toolBoxFilter);
     }
 
-    return matchesDate && matchesSerial;
+    return matchesDate && matchesToolBox;
   });
 }
 
@@ -914,7 +915,9 @@ const filterDateToEl = document.getElementById('filterDateTo');
     }
 
     function clearFilters() {
-      filterDateEl.value = '';
+      filterDateFromEl.value = '';
+filterDateToEl.value = '';
+filterToolBoxEl.value = '';
       filterToolBoxEl.value = '';
       renderLog();
       showStatus('Log filters cleared.');
@@ -960,7 +963,9 @@ const filterDateToEl = document.getElementById('filterDateTo');
     }
 
     function getExportFileName() {
-      const datePart = filterDateEl.value || 'all-dates';
+      const datePart = 
+  (filterDateFromEl.value || 'start') + '_to_' + 
+  (filterDateToEl.value || 'end');
       const toolBoxPart = (filterToolBoxEl.value || 'all-tool-boxes').replace(/[^a-z0-9_-]+/gi, '_');
       return `tool_checklist_log_${toolBoxPart}_${datePart}.csv`;
     }
@@ -1004,7 +1009,7 @@ const filterDateToEl = document.getElementById('filterDateTo');
       const body = [
         'Attached is the filtered Tool Checklist log export.',
         '',
-        `Date filter: ${filterDateEl.value || 'All dates'}`,
+        Date filter: ${filterDateFromEl.value || 'Start'} → ${filterDateToEl.value || 'End'}
         `Tool box filter: ${filterToolBoxEl.value || 'All tool boxes'}`,
         `Entries included: ${filteredLog.length}`
       ].join('\n');
@@ -1051,7 +1056,9 @@ const filterDateToEl = document.getElementById('filterDateTo');
       }
     }, true);
 
-    filterDateEl.addEventListener('change', renderLog);
+    filterDateFromEl.addEventListener('change', renderLog);
+filterDateToEl.addEventListener('change', renderLog);
+filterToolBoxEl.addEventListener('change', renderLog);
     filterToolBoxEl.addEventListener('change', renderLog);
 
     function checkAllItems() {
