@@ -293,7 +293,7 @@
 
     .filter-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 14px;
       margin-bottom: 18px;
       align-items: end;
@@ -461,7 +461,24 @@
         <div class="entry-grid">
           <div class="field">
             <label for="serialNumber">Tool Box Serial Number</label>
-            <input id="serialNumber" type="text" placeholder="Enter serial number">
+            <select id="serialNumber" onchange="autoFillCrew()">
+              <option value="">Select Tool Box Number</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+            </select>
           </div>
 
           <div class="field">
@@ -618,19 +635,22 @@
 
         <div class="filter-grid">
           <div class="field">
-            <label for="filterDateFrom">From Date</label>
+            <label for="filterDateFrom">Filter Date From</label>
             <input id="filterDateFrom" type="date">
           </div>
-           <div class="field">
-            <label for="filterDateTo">TO Date</label>
+
+          <div class="field">
+            <label for="filterDateTo">Filter Date To</label>
             <input id="filterDateTo" type="date">
           </div>
+
           <div class="field">
             <label for="filterToolBox">Filter by Tool Box Number</label>
             <select id="filterToolBox">
               <option value="">All Tool Boxes</option>
             </select>
           </div>
+
           <div class="field">
             <label>Filter Actions</label>
             <div class="filter-actions">
@@ -643,7 +663,7 @@
 
         <div class="button-row">
           <button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
-          <button class="btn" onclick="emailFilteredCSV()"><span>Share Filtered CSV</span></button>
+          <button class="btn" onclick="emailFilteredCSV()"><span>Share Filtered Log</span></button>
         </div>
       </section>
     </div>
@@ -661,9 +681,27 @@
     const logListEl = document.getElementById('logList');
     const logCountEl = document.getElementById('logCount');
     const statusMsgEl = document.getElementById('statusMsg');
-   const filterDateFromEl = document.getElementById('filterDateFrom');
-const filterDateToEl = document.getElementById('filterDateTo');
+    const filterDateFromEl = document.getElementById('filterDateFrom');
+    const filterDateToEl = document.getElementById('filterDateTo');
     const filterToolBoxEl = document.getElementById('filterToolBox');
+
+    const toolboxMap = {
+      "1": "David Thiessen",
+      "2": "Janvier Aujero",
+      "3": "SPARE",
+      "4": "SPARE",
+      "5": "Jacob Dekker",
+      "6": "Nick Roussel",
+      "7": "Josh Casten",
+      "8": "SPARE",
+      "9": "Sandra Thiessen",
+      "10": "Jose Noel",
+      "11": "Ken Mustard",
+      "12": "Daniel Nguyen",
+      "13": "SPARE",
+      "14": "Mitchell Kalakaylo",
+      "15": "Philip Stephenson"
+    };
 
     entryDateEl.value = new Date().toISOString().split('T')[0];
 
@@ -697,6 +735,7 @@ const filterDateToEl = document.getElementById('filterDateTo');
     function showStatus(message, isError = false) {
       statusMsgEl.textContent = message;
       statusMsgEl.style.color = isError ? 'var(--danger)' : 'var(--good)';
+
       if (message) {
         setTimeout(() => {
           if (statusMsgEl.textContent === message) {
@@ -706,16 +745,37 @@ const filterDateToEl = document.getElementById('filterDateTo');
       }
     }
 
+    function autoFillCrew() {
+      const toolbox = serialNumberEl.value;
+      crewMemberEl.value = toolboxMap[toolbox] || '';
+    }
+
     function clearChecklist() {
       getChecklistItems().forEach(item => {
         item.querySelector('input[type="checkbox"]').checked = false;
         item.querySelector('.qty').value = 1;
       });
+
       serialNumberEl.value = '';
       crewMemberEl.value = '';
       entryDateEl.value = new Date().toISOString().split('T')[0];
       updateChecklistState();
       showStatus('Checklist cleared.');
+    }
+
+    function checkAllItems() {
+      getChecklistItems().forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const qty = item.querySelector('.qty');
+
+        checkbox.checked = true;
+        if (!qty.value || Number(qty.value) < 1) {
+          qty.value = 1;
+        }
+      });
+
+      updateChecklistState();
+      showStatus('All items checked.');
     }
 
     function saveChecklistState() {
@@ -807,7 +867,7 @@ const filterDateToEl = document.getElementById('filterDateTo');
       const { serialNumber, crewMember, entryDate, missingItems } = collectFormData();
 
       if (!serialNumber || !crewMember || !entryDate) {
-        showStatus('Please fill in serial number, crew member name, and date.', true);
+        showStatus('Please fill in tool box number, crew member name, and date.', true);
         return;
       }
 
@@ -829,7 +889,7 @@ const filterDateToEl = document.getElementById('filterDateTo');
     }
 
     function escapeHtml(text) {
-      return String(text)
+      return String(text ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -838,34 +898,22 @@ const filterDateToEl = document.getElementById('filterDateTo');
     }
 
     function getFilteredLog() {
-  const log = getLog();
+      const log = getLog();
+      const filterDateFrom = filterDateFromEl.value;
+      const filterDateTo = filterDateToEl.value;
+      const filterToolBox = filterToolBoxEl.value.trim().toLowerCase();
 
-  const fromDate = filterDateFromEl.value;
-  const toDate = filterDateToEl.value;
-  const toolBoxFilter = filterToolBoxEl.value.trim().toLowerCase();
+      return log.filter(entry => {
+        const entryDate = entry.entryDate || '';
+        const matchesFrom = !filterDateFrom || entryDate >= filterDateFrom;
+        const matchesTo = !filterDateTo || entryDate <= filterDateTo;
+        const matchesToolBox =
+          !filterToolBox ||
+          String(entry.serialNumber || '').trim().toLowerCase() === filterToolBox;
 
-  return log.filter(entry => {
-    let matchesDate = true;
-    let matchesToolBox = true;
-
-    // FROM DATE
-    if (fromDate) {
-      matchesDate = entry.entryDate >= fromDate;
+        return matchesFrom && matchesTo && matchesToolBox;
+      });
     }
-
-    // TO DATE
-    if (toDate && matchesDate) {
-      matchesDate = entry.entryDate <= toDate;
-    }
-
-    // TOOL BOX FILTER
-    if (toolBoxFilter) {
-      matchesToolBox = entry.serialNumber.toLowerCase().includes(toolBoxFilter);
-    }
-
-    return matchesDate && matchesToolBox;
-  });
-}
 
     function populateToolBoxFilter(selectedValue = '') {
       const log = getLog();
@@ -873,7 +921,8 @@ const filterDateToEl = document.getElementById('filterDateTo');
         log.map(entry => String(entry.serialNumber || '').trim()).filter(Boolean)
       )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
-      filterToolBoxEl.innerHTML = '<option value="">All Tool Boxes</option>' +
+      filterToolBoxEl.innerHTML =
+        '<option value="">All Tool Boxes</option>' +
         serials.map(serial => `<option value="${escapeHtml(serial)}">${escapeHtml(serial)}</option>`).join('');
 
       if (selectedValue && serials.includes(selectedValue)) {
@@ -916,8 +965,7 @@ const filterDateToEl = document.getElementById('filterDateTo');
 
     function clearFilters() {
       filterDateFromEl.value = '';
-filterDateToEl.value = '';
-filterToolBoxEl.value = '';
+      filterDateToEl.value = '';
       filterToolBoxEl.value = '';
       renderLog();
       showStatus('Log filters cleared.');
@@ -963,11 +1011,11 @@ filterToolBoxEl.value = '';
     }
 
     function getExportFileName() {
-      const datePart = 
-  (filterDateFromEl.value || 'start') + '_to_' + 
-  (filterDateToEl.value || 'end');
+      const fromPart = filterDateFromEl.value || 'start';
+      const toPart = filterDateToEl.value || 'end';
       const toolBoxPart = (filterToolBoxEl.value || 'all-tool-boxes').replace(/[^a-z0-9_-]+/gi, '_');
-      return `tool_checklist_log_${toolBoxPart}_${datePart}.csv`;
+
+      return `tool_checklist_log_${toolBoxPart}_${fromPart}_to_${toPart}.csv`;
     }
 
     function downloadBlob(blob, fileName) {
@@ -1009,7 +1057,8 @@ filterToolBoxEl.value = '';
       const body = [
         'Attached is the filtered Tool Checklist log export.',
         '',
-        Date filter: ${filterDateFromEl.value || 'Start'} → ${filterDateToEl.value || 'End'}
+        `Date from: ${filterDateFromEl.value || 'Beginning'}`,
+        `Date to: ${filterDateToEl.value || 'End'}`,
         `Tool box filter: ${filterToolBoxEl.value || 'All tool boxes'}`,
         `Entries included: ${filteredLog.length}`
       ].join('\n');
@@ -1057,25 +1106,8 @@ filterToolBoxEl.value = '';
     }, true);
 
     filterDateFromEl.addEventListener('change', renderLog);
-filterDateToEl.addEventListener('change', renderLog);
-filterToolBoxEl.addEventListener('change', renderLog);
+    filterDateToEl.addEventListener('change', renderLog);
     filterToolBoxEl.addEventListener('change', renderLog);
-
-    function checkAllItems() {
-      getChecklistItems().forEach(item => {
-        const checkbox = item.querySelector('input[type="checkbox"]');
-        const qty = item.querySelector('.qty');
-
-        checkbox.checked = true;
-
-        if (!qty.value || Number(qty.value) < 1) {
-          qty.value = 1;
-        }
-      });
-
-      updateChecklistState();
-      showStatus('All items checked.');
-    }
 
     loadChecklistState();
     updateChecklistState();
