@@ -225,9 +225,17 @@
       opacity: .75;
     }
 
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 18px 0 10px;
+    }
+
     .log-list {
       display: grid;
       gap: 14px;
+      margin-top: 16px;
     }
 
     .log-item {
@@ -300,7 +308,8 @@
     }
 
     @media (max-width: 900px) {
-      .entry-grid {
+      .entry-grid,
+      .filter-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -404,14 +413,34 @@
         <div class="log-head">
           <div>
             <h2 class="card-title" style="margin-bottom:4px;">Inspection Log</h2>
-            <div class="log-count" id="logCount">0 entries saved</div>
+            <div class="log-count" id="logCount">0 entries shown</div>
+          </div>
+        </div>
+
+        <div class="filter-grid">
+          <div class="field">
+            <label for="filterDateFrom">From Date</label>
+            <input id="filterDateFrom" type="date" onchange="renderLog()">
+          </div>
+
+          <div class="field">
+            <label for="filterDateTo">To Date</label>
+            <input id="filterDateTo" type="date" onchange="renderLog()">
+          </div>
+
+          <div class="field" style="justify-content:end;">
+            <label>&nbsp;</label>
+            <button class="btn secondary" style="width:100%;aspect-ratio:auto;min-height:52px;padding:14px 18px;" onclick="clearFilters()">
+              <span>Clear Filters</span>
+            </button>
           </div>
         </div>
 
         <div class="log-list" id="logList"></div>
 
         <div class="button-row">
-          <button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
+          <button class="btn secondary" onclick="downloadCSV()"><span>Download Filtered CSV</span></button>
+          <button class="btn" onclick="shareCSV()"><span>Share Filtered CSV</span></button>
         </div>
       </section>
     </div>
@@ -450,6 +479,13 @@
       setStatus("Form cleared.");
     }
 
+    function clearFilters() {
+      document.getElementById("filterDateFrom").value = "";
+      document.getElementById("filterDateTo").value = "";
+      renderLog();
+      setStatus("Filters cleared.");
+    }
+
     function addEntry() {
       const serialNumber = document.getElementById("serialNumber").value.trim();
       const crewMember = document.getElementById("crewMember").value.trim();
@@ -481,19 +517,35 @@
       setStatus("Entry added to log.");
     }
 
+    function getFilteredEntries() {
+      const entries = getEntries();
+      const fromDate = document.getElementById("filterDateFrom").value;
+      const toDate = document.getElementById("filterDateTo").value;
+
+      return entries.filter(entry => {
+        const loanDate = entry.dateLoaned || "";
+
+        if (fromDate && loanDate < fromDate) return false;
+        if (toDate && loanDate > toDate) return false;
+
+        return true;
+      });
+    }
+
     function renderLog() {
       const logList = document.getElementById("logList");
       const logCount = document.getElementById("logCount");
-      const entries = getEntries();
+      const filteredEntries = getFilteredEntries();
+      const totalEntries = getEntries().length;
 
-      logCount.textContent = `${entries.length} entr${entries.length === 1 ? "y" : "ies"} saved`;
+      logCount.textContent = `${filteredEntries.length} entr${filteredEntries.length === 1 ? "y" : "ies"} shown of ${totalEntries}`;
 
-      if (!entries.length) {
-        logList.innerHTML = `<div class="empty">No log entries yet.</div>`;
+      if (!filteredEntries.length) {
+        logList.innerHTML = `<div class="empty">No log entries match the selected date range.</div>`;
         return;
       }
 
-      logList.innerHTML = entries.map(entry => `
+      logList.innerHTML = filteredEntries.map(entry => `
         <div class="log-item">
           <div class="log-item-top">
             <div class="serial">${escapeHtml(entry.serialNumber)}</div>
@@ -508,14 +560,7 @@
       `).join("");
     }
 
-    function downloadCSV() {
-      const entries = getEntries();
-
-      if (!entries.length) {
-        setStatus("There are no log entries to download.", true);
-        return;
-      }
-
+    function buildCSV(entries) {
       const headers = [
         "Tool Kit Serial Number",
         "Crew Member Name",
@@ -536,26 +581,76 @@
         entry.createdAt || ""
       ]);
 
-      const csv = [
-        headers,
-        ...rows
-      ].map(row =>
-        row.map(value => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")
-      ).join("\n");
+      return [headers, ...rows]
+        .map(row =>
+          row.map(value => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")
+        )
+        .join("\n");
+    }
 
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+    function getCSVFile() {
+      const filteredEntries = getFilteredEntries();
+
+      if (!filteredEntries.length) {
+        setStatus("There are no filtered log entries to export.", true);
+        return null;
+      }
+
+      const csv = buildCSV(filteredEntries);
       const today = new Date().toISOString().slice(0, 10);
+      const filename = `borrowed-tools-log-filtered-${today}.csv`;
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const file = new File([blob], filename, { type: "text/csv" });
+
+      return { file, filename, csv };
+    }
+
+    function downloadCSV() {
+      const fileData = getCSVFile();
+      if (!fileData) return;
+
+      const { file, filename } = fileData;
+      const url = URL.createObjectURL(file);
+      const a = document.createElement("a");
 
       a.href = url;
-      a.download = `borrowed-tools-log-${today}.csv`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      setStatus("CSV downloaded.");
+      setStatus("Filtered CSV downloaded.");
+    }
+
+    async function shareCSV() {
+      const fileData = getCSVFile();
+      if (!fileData) return;
+
+      const { file, filename, csv } = fileData;
+
+      try {
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: "Borrowed Tools Filtered Log",
+            text: "Sharing filtered borrowed tools log CSV.",
+            files: [file]
+          });
+          setStatus("Filtered CSV shared.");
+          return;
+        }
+
+        const subject = encodeURIComponent("Borrowed Tools Filtered Log CSV");
+        const body = encodeURIComponent(
+          "Attached below is the filtered borrowed tools log data.\n\n" + csv
+        );
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        setStatus("Opened email app with filtered CSV data.");
+      } catch (error) {
+        console.error(error);
+        downloadCSV();
+        setStatus("Share not available on this device. Filtered CSV downloaded instead.");
+      }
     }
 
     function escapeHtml(value) {
