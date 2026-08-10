@@ -1392,214 +1392,174 @@
     ========================================================== */
 
 
-    function normalizeLog(
-      row
-    ) {
+   function normalizeLog(row) {
 
-      let data =
-        row.checklist_data || {};
+  let data =
+    row.checklist_data ||
+    row.data ||
+    {};
 
+  if (typeof data === "string") {
 
-      /*
-        JSONB normally returns an object,
-        but this also handles a JSON string.
-      */
+    try {
+      data = JSON.parse(data);
+    }
 
+    catch {
+      data = {};
+    }
 
-      if (
+  }
 
-        typeof data ===
-        "string"
 
-      ) {
+  /* TOOL BOX NUMBER */
 
-        try {
+  const serialNumber =
 
-          data =
-            JSON.parse(data);
+    data.serialNumber ??
 
-        }
+    data.serial_number ??
 
-        catch {
+    data.toolBoxNumber ??
 
-          data = {};
+    data.toolboxNumber ??
 
-        }
+    data.tool_box_number ??
 
-      }
+    row.serial_number ??
 
+    row.toolbox_number ??
 
+    row.tool_box_number ??
 
-      /*
-        TOOL BOX NUMBER
-      */
+    row.toolbox ??
 
+    row.tool_box ??
 
-      const serialNumber =
+    "";
 
-        data.serialNumber
 
-        ??
+  /* CREW MEMBER */
 
-        data.serial_number
+  const crewMember =
 
-        ??
+    data.crewMember ??
 
-        data.toolBoxNumber
+    data.crew_member ??
 
-        ??
+    data.employee ??
 
-        data.toolboxNumber
+    data.employeeName ??
 
-        ??
+    row.crew_member ??
 
-        data.tool_box_number
+    row.crew_member_name ??
 
-        ??
+    row.employee ??
 
-        "";
+    row.employee_name ??
 
+    "";
 
 
-      /*
-        CREW MEMBER
-      */
+  /* INSPECTION DATE */
 
+  const entryDate =
 
-      const crewMember =
+    data.entryDate ??
 
-        data.crewMember
+    data.entry_date ??
 
-        ??
+    data.date ??
 
-        data.crew_member
+    row.entry_date ??
 
-        ??
+    row.inspection_date ??
 
-        data.employee
+    row.date ??
 
-        ??
+    (
+      row.created_at
+        ? row.created_at.split("T")[0]
+        : ""
+    );
 
-        data.employeeName
 
-        ??
+  /* MISSING ITEMS */
 
-        "";
+  let missingItems =
 
+    data.missingItems ??
 
+    data.missing_items ??
 
-      /*
-        INSPECTION DATE
-      */
+    row.missing_items ??
 
+    row.missingItems ??
 
-      const entryDate =
+    [];
 
-        data.entryDate
 
-        ??
+  /* Handle JSON stored as text */
 
-        data.entry_date
+  if (typeof missingItems === "string") {
 
-        ??
+    try {
 
-        data.date
-
-        ??
-
-        (
-          row.created_at
-
-          ?
-
-          row.created_at
-            .split("T")[0]
-
-          :
-
-          ""
-        );
-
-
-
-      /*
-        MISSING ITEMS
-      */
-
-
-      let missingItems =
-
-        data.missingItems
-
-        ??
-
-        data.missing_items
-
-        ??
-
-        [];
-
-
-      if (
-
-        !Array.isArray(
-          missingItems
-        )
-
-      ) {
-
-        missingItems = [];
-
-      }
-
-
-
-      return {
-
-        id:
-          row.id,
-
-
-        serialNumber:
-          String(
-            serialNumber
-          ),
-
-
-        crewMember:
-          String(
-            crewMember
-          ),
-
-
-        entryDate:
-          String(
-            entryDate
-          ),
-
-
-        missingItems:
-          missingItems,
-
-
-        checklistName:
-          row.checklist_name
-          ||
-          "Tool Checklist",
-
-
-        notes:
-          row.notes
-          ||
-          "",
-
-
-        createdAt:
-          row.created_at
-
-      };
+      missingItems =
+        JSON.parse(missingItems);
 
     }
+
+    catch {
+
+      missingItems = [];
+
+    }
+
+  }
+
+
+  if (!Array.isArray(missingItems)) {
+
+    missingItems = [];
+
+  }
+
+
+  return {
+
+    id:
+      row.id,
+
+    serialNumber:
+      String(serialNumber),
+
+    crewMember:
+      String(crewMember),
+
+    entryDate:
+      String(entryDate),
+
+    missingItems:
+      missingItems,
+
+    checklistName:
+      row.checklist_name ||
+      row.name ||
+      "Tool Box Inspection",
+
+    notes:
+      row.notes ||
+      row.comments ||
+      "",
+
+    createdAt:
+      row.created_at
+
+  };
+
+}
 
 
 
@@ -1703,45 +1663,18 @@
 
 
       const {
-
-        data,
-
-        error
-
-      } =
-        await sb
-
-          .from(
-            "tool_checklist_logs"
-          )
-
-          .select(`
-
-            id,
-
-            user_id,
-
-            created_at,
-
-            checklist_name,
-
-            checklist_data,
-
-            notes
-
-          `)
-
-          .order(
-
-            "created_at",
-
-            {
-
-              ascending: false
-
-            }
-
-          );
+  data,
+  error
+} =
+  await sb
+    .from("tool_checklist_logs")
+    .select("*")
+    .order(
+      "created_at",
+      {
+        ascending: false
+      }
+    );
 
 
 
