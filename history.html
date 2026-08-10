@@ -1,10 +1,19 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tool Checklist Log</title>
+
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1">
+
+  <title>Previous Tool Check Logs</title>
+
+
   <style>
+
     :root {
       --bg: #eaf6ff;
       --primary: #4da3ff;
@@ -17,349 +26,2683 @@
       --danger: #c63b5d;
     }
 
+
     * {
       box-sizing: border-box;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family:
+        system-ui,
+        -apple-system,
+        Segoe UI,
+        Roboto,
+        Arial,
+        sans-serif;
     }
+
 
     body {
       margin: 0;
-      background: linear-gradient(135deg, #092B9C, #2DA0ED);
+      background:
+        linear-gradient(
+          135deg,
+          #092B9C,
+          #2DA0ED
+        );
+
       color: var(--text);
+
       min-height: 100vh;
+
       display: flex;
       flex-direction: column;
     }
+
 
     header {
       text-align: center;
       padding: 28px 20px 18px;
     }
 
+
     .topbar {
       width: 100%;
       max-width: 1100px;
+
       margin: 0 auto 18px;
+
       display: flex;
       justify-content: center;
     }
+
 
     .logo {
       width: min(340px, 78vw);
       height: min(340px, 78vw);
+
       margin: 0 auto 15px;
+
       border-radius: 20px;
+
       background: #57a4f2;
+
       box-shadow: var(--shadow);
+
       display: flex;
+
       align-items: center;
       justify-content: center;
+
       overflow: hidden;
+
       padding: 20px;
     }
+
 
     .logo img {
       max-width: 100%;
       max-height: 100%;
+
       object-fit: contain;
+
       display: block;
     }
 
+
     h1 {
       margin: 0;
+
       font-size: 28px;
+
       color: #fff;
     }
+
 
     .subtitle {
       margin-top: 6px;
+
       font-size: 14px;
-      color: rgba(255,255,255,0.92);
+
+      color:
+        rgba(
+          255,
+          255,
+          255,
+          0.92
+        );
     }
+
 
     main {
       flex: 1;
+
       padding: 24px 16px 40px;
+
       display: flex;
+
       justify-content: center;
     }
+
 
     .page-wrap {
       width: 100%;
+
       max-width: 1100px;
+
       display: grid;
+
       grid-template-columns: 1fr;
+
       gap: 24px;
+
       justify-items: center;
     }
 
-    .container,
+
     .log-panel {
       width: min(920px, 100%);
+
       background: var(--card);
+
       backdrop-filter: blur(10px);
+
       border-radius: 22px;
+
       padding: 22px;
+
       box-shadow: var(--shadow);
     }
 
+
     .card-title {
       margin: 0 0 8px;
+
       font-size: 24px;
+
       text-align: center;
     }
+
 
     .card-subtitle {
       margin: 0 0 18px;
+
       opacity: 0.75;
+
       font-size: 14px;
+
       text-align: center;
     }
 
-    .entry-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
+
+    /* ==========================
+       FORM FIELDS
+    ========================== */
 
     .field {
       display: flex;
+
       flex-direction: column;
+
       gap: 8px;
     }
 
+
     .field label {
       font-size: 14px;
+
       font-weight: 700;
     }
 
-    .field input[type="text"],
-    .field input[type="date"],
+
+    .field input,
     .field select {
+
       width: 100%;
-      border: 1px solid var(--line);
+
+      border:
+        1px solid
+        var(--line);
+
       border-radius: 14px;
+
       padding: 14px 16px;
+
       font-size: 15px;
-      background: rgba(255,255,255,0.88);
+
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          0.88
+        );
+
       color: var(--text);
+
       outline: none;
     }
 
+
     .field input:focus,
     .field select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(77,163,255,.18);
+
+      border-color:
+        var(--primary);
+
+      box-shadow:
+        0 0 0 3px
+        rgba(
+          77,
+          163,
+          255,
+          .18
+        );
     }
 
-    .button-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: wrap;
-      width: 100%;
-      margin: 24px auto 0;
+
+    /* ==========================
+       FILTERS
+    ========================== */
+
+    .filter-grid {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(165px, 1fr)
+        );
+
+      gap: 14px;
+
+      margin-bottom: 18px;
+
+      align-items: end;
     }
+
+
+    .filter-actions {
+
+      display: flex;
+
+      justify-content: center;
+
+      gap: 12px;
+
+      flex-wrap: wrap;
+
+      margin:
+        18px 0 24px;
+    }
+
+
+    /* ==========================
+       BUTTONS
+    ========================== */
 
     .btn {
-      width: clamp(140px, 18vw, 190px);
+
+      width:
+        clamp(
+          140px,
+          18vw,
+          190px
+        );
+
       aspect-ratio: 1 / 1;
+
       display: flex;
+
       flex-direction: column;
+
       align-items: center;
+
       justify-content: center;
+
       gap: 14px;
+
       padding: 18px;
+
       border: none;
+
       border-radius: 24px;
+
       background: #57a4f2;
+
       color: #fff;
-      box-shadow: 0 12px 30px rgba(60,120,190,.18);
+
+      box-shadow:
+        0 12px 30px
+        rgba(
+          60,
+          120,
+          190,
+          .18
+        );
+
       cursor: pointer;
-      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+
       text-align: center;
+
       font-size: 16px;
+
       font-weight: 700;
     }
+
 
     .btn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 18px 36px rgba(60,120,190,.22);
+
+      transform:
+        translateY(-4px);
+
+      box-shadow:
+        0 18px 36px
+        rgba(
+          60,
+          120,
+          190,
+          .22
+        );
     }
+
 
     .btn span {
-      font-size: clamp(14px, 1.2vw, 18px);
+
+      font-size:
+        clamp(
+          14px,
+          1.2vw,
+          18px
+        );
+
       font-weight: 700;
+
       line-height: 1.2;
-      max-width: 90%;
     }
+
 
     .btn.secondary {
+
       background: #fff;
-      color: var(--primary);
-      border: 2px solid var(--primary);
+
+      color:
+        var(--primary);
+
+      border:
+        2px solid
+        var(--primary);
     }
 
-    .status {
-      margin-top: 18px;
-      min-height: 22px;
-      text-align: center;
-      font-size: 14px;
-      font-weight: 700;
+
+    .btn-inline {
+
+      width: auto;
+
+      aspect-ratio: auto;
+
+      min-height: 48px;
+
+      padding: 12px 22px;
+
+      border-radius: 14px;
     }
+
+
+    /* ==========================
+       LOG HEADER
+    ========================== */
 
     .log-head {
+
       display: flex;
+
       justify-content: center;
+
       align-items: center;
+
       gap: 12px;
-      margin-bottom: 14px;
+
+      margin-bottom: 20px;
+
       flex-wrap: wrap;
+
       text-align: center;
     }
 
+
     .log-count {
+
       font-size: 14px;
+
       opacity: .75;
     }
 
+
+    /* ==========================
+       LOG LIST
+    ========================== */
+
     .log-list {
+
       display: grid;
+
       gap: 14px;
     }
 
+
     .log-item {
-      background: rgba(255,255,255,0.8);
-      border: 1px solid var(--line);
+
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          0.82
+        );
+
+      border:
+        1px solid
+        var(--line);
+
       border-radius: 18px;
-      padding: 16px;
+
+      padding: 18px;
     }
+
 
     .log-item-top {
+
       display: flex;
+
       justify-content: space-between;
+
       align-items: flex-start;
+
       gap: 10px;
+
       flex-wrap: wrap;
-      margin-bottom: 10px;
+
+      margin-bottom: 12px;
     }
+
 
     .serial {
-      font-size: 18px;
+
+      font-size: 19px;
+
       font-weight: 800;
-      color: var(--primary-dark);
+
+      color:
+        var(--primary-dark);
     }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 7px 11px;
-      border-radius: 999px;
-      background: #dcebff;
-      color: var(--primary-dark);
-      font-size: 12px;
-      font-weight: 700;
-      margin: 4px 6px 0 0;
-      border: 1px solid rgba(77,163,255,.25);
-    }
 
     .meta {
+
       font-size: 14px;
+
       line-height: 1.5;
+
       margin-bottom: 6px;
     }
 
+
     .small-title {
-      margin: 10px 0 6px;
+
+      margin: 12px 0 6px;
+
       font-size: 13px;
+
       font-weight: 800;
+
       text-transform: uppercase;
+
       letter-spacing: .04em;
-      color: var(--primary-dark);
+
+      color:
+        var(--primary-dark);
     }
 
-    .empty {
+
+    /* ==========================
+       PILLS
+    ========================== */
+
+    .pill {
+
+      display: inline-flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      padding: 7px 11px;
+
+      border-radius: 999px;
+
+      background: #dcebff;
+
+      color:
+        var(--primary-dark);
+
+      font-size: 12px;
+
+      font-weight: 700;
+
+      margin: 4px 6px 4px 0;
+
+      border:
+        1px solid
+        rgba(
+          77,
+          163,
+          255,
+          .25
+        );
+    }
+
+
+    .pill.complete {
+
+      background: #dff7e9;
+
+      color: #177245;
+
+      border-color:
+        rgba(
+          23,
+          114,
+          69,
+          .25
+        );
+    }
+
+
+    .pill.missing {
+
+      background: #ffe5eb;
+
+      color: #a12f4b;
+
+      border-color:
+        rgba(
+          161,
+          47,
+          75,
+          .25
+        );
+    }
+
+
+    /* ==========================
+       NOTES
+    ========================== */
+
+    .notes-box {
+
+      margin-top: 12px;
+
+      padding: 12px;
+
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          .55
+        );
+
+      border-radius: 12px;
+
+      font-size: 13px;
+    }
+
+
+    .log-created {
+
+      font-size: 12px;
+
+      opacity: .6;
+
+      margin-top: 12px;
+    }
+
+
+    /* ==========================
+       STATUS
+    ========================== */
+
+    .log-status {
+
+      margin-bottom: 16px;
+
       text-align: center;
-      padding: 26px 18px;
-      border: 1px dashed rgba(26,42,58,0.18);
-      border-radius: 18px;
-      background: rgba(255,255,255,0.45);
+
       font-size: 14px;
+
+      font-weight: 700;
+
+      min-height: 20px;
+    }
+
+
+    .empty {
+
+      text-align: center;
+
+      padding: 26px 18px;
+
+      border:
+        1px dashed
+        rgba(
+          26,
+          42,
+          58,
+          0.18
+        );
+
+      border-radius: 18px;
+
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          0.45
+        );
+
+      font-size: 14px;
+
       opacity: .85;
     }
 
-    footer {
+
+    .loading {
+
       text-align: center;
+
+      padding: 28px;
+
+      font-weight: 700;
+
+      opacity: .75;
+    }
+
+
+    footer {
+
+      text-align: center;
+
       padding: 16px;
+
       font-size: 12px;
+
       opacity: 0.85;
-      color: rgba(255,255,255,0.92);
+
+      color:
+        rgba(
+          255,
+          255,
+          255,
+          0.92
+        );
     }
 
-    @media (max-width: 900px) {
-      .entry-grid {
-        grid-template-columns: 1fr;
-      }
-    }
 
-    @media (max-width: 640px) {
+    /* ==========================
+       MOBILE
+    ========================== */
+
+    @media (max-width: 700px) {
+
       header {
-        padding: 22px 16px 12px;
+        padding:
+          22px 16px 12px;
       }
+
 
       h1 {
         font-size: 24px;
       }
 
+
       main {
-        padding: 16px 12px 32px;
+        padding:
+          16px 12px 32px;
       }
 
-      .container,
+
       .log-panel {
         padding: 16px;
       }
 
-      .btn {
-        width: 100%;
-        aspect-ratio: auto;
-        min-height: 74px;
-        border-radius: 18px;
+
+      .filter-grid {
+        grid-template-columns: 1fr;
       }
+
+
+      .btn-inline {
+        width: 100%;
+      }
+
+
+      .logo {
+
+        width: min(280px, 75vw);
+
+        height: min(280px, 75vw);
+      }
+
     }
+
   </style>
+
 </head>
+
+
+
 <body>
+
+
+  <!-- ==========================
+       HEADER
+  ========================== -->
+
   <header>
+
+
     <div class="logo">
-      <img src="logo.png" alt="Logo">
+
+      <img
+        src="logo.png"
+        alt="Prins Logo">
+
     </div>
+
 
     <div class="topbar">
-      <button class="btn secondary" style="width:auto;aspect-ratio:auto;padding:14px 24px;" onclick="location.href='Main Menu.html'">
-        <span>Return Home</span>
+
+      <button
+        class="btn secondary"
+        style="
+          width:auto;
+          aspect-ratio:auto;
+          padding:14px 24px;
+        "
+        onclick="
+          location.href='Main Menu.html'
+        ">
+
+        <span>
+          Return Home
+        </span>
+
       </button>
+
     </div>
 
-    <h1>Under Constrution</h1>
-    <div class="subtitle">Tool Logs coming soon..</div>
+
+    <h1>
+      Previous Tool Check Logs
+    </h1>
+
+
+    <div class="subtitle">
+      Search and review previous toolbox inspections
+    </div>
+
+
   </header>
 
-  <main>
-    <div class="page-wrap">
-      <section class="container">
-        <h2 class="card-title">Borrowed Tool Kits</h2>
-        <p class="card-subtitle">THis page is under construction.</p>
 
-         </main>
+
+  <!-- ==========================
+       MAIN PAGE
+  ========================== -->
+
+  <main>
+
+
+    <div class="page-wrap">
+
+
+      <section class="log-panel">
+
+
+        <!-- LOG TITLE -->
+
+        <div class="log-head">
+
+          <div>
+
+            <h2
+              class="card-title"
+              style="margin-bottom:4px;">
+
+              Inspection Log
+
+            </h2>
+
+
+            <div
+              class="log-count"
+              id="logCount">
+
+              Loading...
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==========================
+             FILTERS
+        ========================== -->
+
+        <div class="filter-grid">
+
+
+          <!-- DATE FROM -->
+
+          <div class="field">
+
+            <label for="filterDateFrom">
+
+              Date From
+
+            </label>
+
+
+            <input
+              type="date"
+              id="filterDateFrom">
+
+          </div>
+
+
+
+          <!-- DATE TO -->
+
+          <div class="field">
+
+            <label for="filterDateTo">
+
+              Date To
+
+            </label>
+
+
+            <input
+              type="date"
+              id="filterDateTo">
+
+          </div>
+
+
+
+          <!-- TOOL BOX -->
+
+          <div class="field">
+
+            <label for="filterToolBox">
+
+              Tool Box
+
+            </label>
+
+
+            <select id="filterToolBox">
+
+              <option value="">
+
+                All Tool Boxes
+
+              </option>
+
+            </select>
+
+          </div>
+
+
+
+          <!-- CREW MEMBER -->
+
+          <div class="field">
+
+            <label for="filterCrew">
+
+              Crew Member
+
+            </label>
+
+
+            <input
+              type="text"
+              id="filterCrew"
+              placeholder="Search name...">
+
+          </div>
+
+
+
+          <!-- STATUS -->
+
+          <div class="field">
+
+            <label for="filterStatus">
+
+              Inspection Status
+
+            </label>
+
+
+            <select id="filterStatus">
+
+              <option value="">
+
+                All Inspections
+
+              </option>
+
+
+              <option value="complete">
+
+                Complete
+
+              </option>
+
+
+              <option value="missing">
+
+                Missing Items
+
+              </option>
+
+            </select>
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- ==========================
+             FILTER BUTTONS
+        ========================== -->
+
+        <div class="filter-actions">
+
+
+          <button
+            class="btn secondary btn-inline"
+            onclick="clearFilters()">
+
+            <span>
+              Clear Filters
+            </span>
+
+          </button>
+
+
+
+          <button
+            class="btn btn-inline"
+            onclick="loadLogs()">
+
+            <span>
+              Refresh Logs
+            </span>
+
+          </button>
+
+
+        </div>
+
+
+
+        <!-- STATUS MESSAGE -->
+
+        <div
+          id="logStatus"
+          class="log-status">
+
+        </div>
+
+
+
+        <!-- ==========================
+             LOG RESULTS
+        ========================== -->
+
+        <div
+          class="log-list"
+          id="logList">
+
+
+          <div class="loading">
+
+            Loading inspection logs...
+
+          </div>
+
+
+        </div>
+
+
+      </section>
+
+
+    </div>
+
+
+  </main>
+
+
+
+  <footer>
+
+    Tool Checklist Log
+
+  </footer>
+
+
+
+  <!-- ==========================
+       SUPABASE LIBRARY
+  ========================== -->
+
+  <script
+    src="
+      https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2
+    ">
+  </script>
 
 
 
   <script>
- 
+
+    /* ==========================================================
+       SUPABASE SETTINGS
+
+       REPLACE THESE TWO VALUES WITH THE SAME ONES USED
+       ON YOUR LOGIN PAGE.
+    ========================================================== */
+
+
+    const SUPABASE_URL =
+      "https://xlocuvsgpvfglpmvtekc.supabase.co";
+
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_wqFCN6y-w6T7cft5PUCfRw_001kKWLY";
+
+
+
+    const sb =
+      window.supabase.createClient(
+
+        SUPABASE_URL,
+
+        SUPABASE_PUBLISHABLE_KEY
+
+      );
+
+
+
+    /* ==========================================================
+       PAGE ELEMENTS
+    ========================================================== */
+
+
+    const logListEl =
+      document.getElementById(
+        "logList"
+      );
+
+
+    const logCountEl =
+      document.getElementById(
+        "logCount"
+      );
+
+
+    const logStatusEl =
+      document.getElementById(
+        "logStatus"
+      );
+
+
+    const filterDateFromEl =
+      document.getElementById(
+        "filterDateFrom"
+      );
+
+
+    const filterDateToEl =
+      document.getElementById(
+        "filterDateTo"
+      );
+
+
+    const filterToolBoxEl =
+      document.getElementById(
+        "filterToolBox"
+      );
+
+
+    const filterCrewEl =
+      document.getElementById(
+        "filterCrew"
+      );
+
+
+    const filterStatusEl =
+      document.getElementById(
+        "filterStatus"
+      );
+
+
+    let allLogs = [];
+
+
+
+    /* ==========================================================
+       ESCAPE HTML
+
+       Prevents database text from being interpreted as HTML.
+    ========================================================== */
+
+
+    function escapeHtml(
+      value
+    ) {
+
+      return String(
+        value ?? ""
+      )
+
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+
+      .replace(
+        /</g,
+        "&lt;"
+      )
+
+      .replace(
+        />/g,
+        "&gt;"
+      )
+
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
+    }
+
+
+
+    /* ==========================================================
+       FORMAT TOOL BOX NUMBER
+
+       1      -> 1
+       12     -> 12
+       1001   -> PG-1001
+    ========================================================== */
+
+
+    function formatToolBox(
+      value
+    ) {
+
+      const number =
+        String(
+          value ?? ""
+        ).trim();
+
+
+      if (!number) {
+
+        return "Unknown";
+
+      }
+
+
+      if (
+
+        Number(number) >= 1000
+
+        &&
+
+        !number
+          .toUpperCase()
+          .startsWith("PG-")
+
+      ) {
+
+        return "PG-" + number;
+
+      }
+
+
+      return number;
+
+    }
+
+
+
+    /* ==========================================================
+       FORMAT INSPECTION DATE
+    ========================================================== */
+
+
+    function formatDate(
+      value
+    ) {
+
+      if (!value) {
+
+        return "No Date";
+
+      }
+
+
+      /*
+        Handle database YYYY-MM-DD dates
+        without timezone shifting.
+      */
+
+
+      if (
+
+        /^\d{4}-\d{2}-\d{2}$/
+          .test(value)
+
+      ) {
+
+        const parts =
+          value.split("-");
+
+
+        const date =
+          new Date(
+
+            Number(parts[0]),
+
+            Number(parts[1]) - 1,
+
+            Number(parts[2])
+
+          );
+
+
+        return date
+          .toLocaleDateString(
+
+            "en-CA",
+
+            {
+
+              year:
+                "numeric",
+
+              month:
+                "short",
+
+              day:
+                "numeric"
+
+            }
+
+          );
+
+      }
+
+
+
+      const date =
+        new Date(value);
+
+
+      if (
+
+        Number.isNaN(
+          date.getTime()
+        )
+
+      ) {
+
+        return value;
+
+      }
+
+
+      return date
+        .toLocaleDateString(
+
+          "en-CA",
+
+          {
+
+            year:
+              "numeric",
+
+            month:
+              "short",
+
+            day:
+              "numeric"
+
+          }
+
+        );
+
+    }
+
+
+
+    /* ==========================================================
+       CONVERT SUPABASE ROW INTO TOOLBOX LOG
+
+       Supabase table:
+       checklist_logs
+
+       checklist_data stores:
+       serialNumber
+       crewMember
+       entryDate
+       missingItems
+    ========================================================== */
+
+
+    function normalizeLog(
+      row
+    ) {
+
+      let data =
+        row.checklist_data || {};
+
+
+      /*
+        JSONB normally returns an object,
+        but this also handles a JSON string.
+      */
+
+
+      if (
+
+        typeof data ===
+        "string"
+
+      ) {
+
+        try {
+
+          data =
+            JSON.parse(data);
+
+        }
+
+        catch {
+
+          data = {};
+
+        }
+
+      }
+
+
+
+      /*
+        TOOL BOX NUMBER
+      */
+
+
+      const serialNumber =
+
+        data.serialNumber
+
+        ??
+
+        data.serial_number
+
+        ??
+
+        data.toolBoxNumber
+
+        ??
+
+        data.toolboxNumber
+
+        ??
+
+        data.tool_box_number
+
+        ??
+
+        "";
+
+
+
+      /*
+        CREW MEMBER
+      */
+
+
+      const crewMember =
+
+        data.crewMember
+
+        ??
+
+        data.crew_member
+
+        ??
+
+        data.employee
+
+        ??
+
+        data.employeeName
+
+        ??
+
+        "";
+
+
+
+      /*
+        INSPECTION DATE
+      */
+
+
+      const entryDate =
+
+        data.entryDate
+
+        ??
+
+        data.entry_date
+
+        ??
+
+        data.date
+
+        ??
+
+        (
+          row.created_at
+
+          ?
+
+          row.created_at
+            .split("T")[0]
+
+          :
+
+          ""
+        );
+
+
+
+      /*
+        MISSING ITEMS
+      */
+
+
+      let missingItems =
+
+        data.missingItems
+
+        ??
+
+        data.missing_items
+
+        ??
+
+        [];
+
+
+      if (
+
+        !Array.isArray(
+          missingItems
+        )
+
+      ) {
+
+        missingItems = [];
+
+      }
+
+
+
+      return {
+
+        id:
+          row.id,
+
+
+        serialNumber:
+          String(
+            serialNumber
+          ),
+
+
+        crewMember:
+          String(
+            crewMember
+          ),
+
+
+        entryDate:
+          String(
+            entryDate
+          ),
+
+
+        missingItems:
+          missingItems,
+
+
+        checklistName:
+          row.checklist_name
+          ||
+          "Tool Checklist",
+
+
+        notes:
+          row.notes
+          ||
+          "",
+
+
+        createdAt:
+          row.created_at
+
+      };
+
+    }
+
+
+
+    /* ==========================================================
+       LOAD LOGS FROM SUPABASE
+    ========================================================== */
+
+
+    async function loadLogs() {
+
+
+      logListEl.innerHTML = `
+
+        <div class="loading">
+
+          Loading inspection logs...
+
+        </div>
+
+      `;
+
+
+      logStatusEl.textContent =
+        "Connecting to database...";
+
+
+      logStatusEl.style.color =
+        "var(--primary-dark)";
+
+
+
+      /* --------------------------
+         CHECK LOGIN SESSION
+      -------------------------- */
+
+
+      const {
+
+        data:
+          sessionData,
+
+        error:
+          sessionError
+
+      } =
+        await sb.auth
+          .getSession();
+
+
+
+      if (sessionError) {
+
+        console.error(
+          sessionError
+        );
+
+      }
+
+
+
+      if (
+
+        !sessionData.session
+
+      ) {
+
+
+        logListEl.innerHTML = `
+
+          <div class="empty">
+
+            You must be logged in
+            to view inspection logs.
+
+          </div>
+
+        `;
+
+
+        logCountEl.textContent =
+          "0 entries shown";
+
+
+        logStatusEl.textContent =
+          "No active login session.";
+
+
+        logStatusEl.style.color =
+          "var(--danger)";
+
+
+        return;
+
+      }
+
+
+
+      /* --------------------------
+         READ CHECKLIST_LOGS TABLE
+      -------------------------- */
+
+
+      const {
+
+        data,
+
+        error
+
+      } =
+        await sb
+
+          .from(
+            "checklist_logs"
+          )
+
+          .select(`
+
+            id,
+
+            user_id,
+
+            created_at,
+
+            checklist_name,
+
+            checklist_data,
+
+            notes
+
+          `)
+
+          .order(
+
+            "created_at",
+
+            {
+
+              ascending: false
+
+            }
+
+          );
+
+
+
+      /* --------------------------
+         QUERY ERROR
+      -------------------------- */
+
+
+      if (error) {
+
+
+        console.error(
+
+          "Supabase log error:",
+
+          error
+
+        );
+
+
+        logListEl.innerHTML = `
+
+          <div class="empty">
+
+            Unable to load inspection logs.
+
+            <br><br>
+
+            ${escapeHtml(
+              error.message
+            )}
+
+          </div>
+
+        `;
+
+
+        logCountEl.textContent =
+          "0 entries shown";
+
+
+        logStatusEl.textContent =
+          "Supabase connection error.";
+
+
+        logStatusEl.style.color =
+          "var(--danger)";
+
+
+        return;
+
+      }
+
+
+
+      /* --------------------------
+         CONVERT DATABASE DATA
+      -------------------------- */
+
+
+      allLogs =
+        (data || [])
+          .map(
+            normalizeLog
+          );
+
+
+
+      /* --------------------------
+         BUILD TOOLBOX FILTER
+      -------------------------- */
+
+
+      populateToolBoxFilter();
+
+
+
+      /* --------------------------
+         DISPLAY LOGS
+      -------------------------- */
+
+
+      renderLogs();
+
+
+
+      logStatusEl.textContent =
+        "Logs loaded successfully.";
+
+
+      logStatusEl.style.color =
+        "var(--good)";
+
+
+
+      setTimeout(
+        function() {
+
+          if (
+
+            logStatusEl.textContent ===
+            "Logs loaded successfully."
+
+          ) {
+
+            logStatusEl.textContent =
+              "";
+
+          }
+
+        },
+
+        2500
+
+      );
+
+    }
+
+
+
+    /* ==========================================================
+       POPULATE TOOL BOX FILTER
+    ========================================================== */
+
+
+    function populateToolBoxFilter() {
+
+
+      const currentSelection =
+        filterToolBoxEl.value;
+
+
+
+      const serialNumbers =
+        [
+
+          ...new Set(
+
+            allLogs
+
+              .map(
+
+                log =>
+
+                  String(
+
+                    log.serialNumber
+                    ||
+                    ""
+
+                  ).trim()
+
+              )
+
+              .filter(Boolean)
+
+          )
+
+        ];
+
+
+      serialNumbers.sort(
+
+        function(
+          a,
+          b
+        ) {
+
+          return a.localeCompare(
+
+            b,
+
+            undefined,
+
+            {
+
+              numeric:
+                true,
+
+              sensitivity:
+                "base"
+
+            }
+
+          );
+
+        }
+
+      );
+
+
+
+      filterToolBoxEl.innerHTML = `
+
+        <option value="">
+
+          All Tool Boxes
+
+        </option>
+
+      `;
+
+
+
+      serialNumbers.forEach(
+
+        function(
+          serial
+        ) {
+
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+
+          option.value =
+            serial;
+
+
+          option.textContent =
+            formatToolBox(
+              serial
+            );
+
+
+          filterToolBoxEl.appendChild(
+            option
+          );
+
+        }
+
+      );
+
+
+
+      if (
+
+        serialNumbers.includes(
+          currentSelection
+        )
+
+      ) {
+
+        filterToolBoxEl.value =
+          currentSelection;
+
+      }
+
+    }
+
+
+
+    /* ==========================================================
+       FILTER LOGS
+    ========================================================== */
+
+
+    function getFilteredLogs() {
+
+
+      const dateFrom =
+        filterDateFromEl.value;
+
+
+      const dateTo =
+        filterDateToEl.value;
+
+
+      const toolBox =
+        filterToolBoxEl.value
+
+          .trim()
+
+          .toLowerCase();
+
+
+      const crew =
+        filterCrewEl.value
+
+          .trim()
+
+          .toLowerCase();
+
+
+      const status =
+        filterStatusEl.value;
+
+
+
+      return allLogs.filter(
+
+        function(
+          log
+        ) {
+
+
+          const entryDate =
+            log.entryDate
+            ||
+            "";
+
+
+
+          /* DATE FROM */
+
+
+          const matchesDateFrom =
+
+            !dateFrom
+
+            ||
+
+            entryDate >=
+              dateFrom;
+
+
+
+          /* DATE TO */
+
+
+          const matchesDateTo =
+
+            !dateTo
+
+            ||
+
+            entryDate <=
+              dateTo;
+
+
+
+          /* TOOL BOX */
+
+
+          const matchesToolBox =
+
+            !toolBox
+
+            ||
+
+            String(
+              log.serialNumber
+            )
+
+            .trim()
+
+            .toLowerCase()
+
+            ===
+
+            toolBox;
+
+
+
+          /* CREW MEMBER */
+
+
+          const matchesCrew =
+
+            !crew
+
+            ||
+
+            String(
+              log.crewMember
+            )
+
+            .toLowerCase()
+
+            .includes(
+              crew
+            );
+
+
+
+          /* STATUS */
+
+
+          const hasMissingItems =
+
+            log.missingItems.length
+            >
+            0;
+
+
+
+          const matchesStatus =
+
+            !status
+
+            ||
+
+            (
+              status ===
+              "complete"
+
+              &&
+
+              !hasMissingItems
+            )
+
+            ||
+
+            (
+              status ===
+              "missing"
+
+              &&
+
+              hasMissingItems
+            );
+
+
+
+          return (
+
+            matchesDateFrom
+
+            &&
+
+            matchesDateTo
+
+            &&
+
+            matchesToolBox
+
+            &&
+
+            matchesCrew
+
+            &&
+
+            matchesStatus
+
+          );
+
+        }
+
+      );
+
+    }
+
+
+
+    /* ==========================================================
+       DISPLAY LOGS
+    ========================================================== */
+
+
+    function renderLogs() {
+
+
+      const logs =
+        getFilteredLogs();
+
+
+
+      logCountEl.textContent =
+
+        `${logs.length} entr${
+          logs.length === 1
+            ?
+            "y"
+            :
+            "ies"
+        } shown`;
+
+
+
+      if (
+
+        logs.length === 0
+
+      ) {
+
+
+        logListEl.innerHTML = `
+
+          <div class="empty">
+
+            No inspection logs
+            match the selected filters.
+
+          </div>
+
+        `;
+
+
+        return;
+
+      }
+
+
+
+      logListEl.innerHTML =
+
+        logs
+
+        .map(
+
+          function(
+            log
+          ) {
+
+
+            const hasMissing =
+
+              log.missingItems.length
+              >
+              0;
+
+
+
+            /* --------------------------
+               MISSING ITEMS
+            -------------------------- */
+
+
+            let missingHTML =
+              "";
+
+
+
+            if (hasMissing) {
+
+
+              missingHTML =
+
+                log.missingItems
+
+                .map(
+
+                  function(
+                    item
+                  ) {
+
+
+                    const name =
+
+                      item.name
+
+                      ??
+
+                      item.item
+
+                      ??
+
+                      "Unknown Item";
+
+
+
+                    const qty =
+
+                      Number(
+
+                        item.qty
+
+                        ??
+
+                        0
+
+                      );
+
+
+
+                    return `
+
+                      <span
+                        class="
+                          pill
+                          missing
+                        ">
+
+                        ${escapeHtml(
+                          name
+                        )}
+
+                        ${
+                          qty > 1
+
+                          ?
+
+                          ` × ${qty}`
+
+                          :
+
+                          ""
+                        }
+
+                      </span>
+
+                    `;
+
+                  }
+
+                )
+
+                .join("");
+
+
+            }
+
+            else {
+
+
+              missingHTML = `
+
+                <span
+                  class="
+                    pill
+                    complete
+                  ">
+
+                  ✓ Tool Kit Complete
+
+                </span>
+
+              `;
+
+            }
+
+
+
+            /* --------------------------
+               CREATED DATE/TIME
+            -------------------------- */
+
+
+            let submitted =
+              "";
+
+
+            if (
+              log.createdAt
+            ) {
+
+
+              const createdDate =
+                new Date(
+                  log.createdAt
+                );
+
+
+              if (
+
+                !Number.isNaN(
+                  createdDate.getTime()
+                )
+
+              ) {
+
+
+                submitted =
+                  createdDate
+                    .toLocaleString(
+                      "en-CA"
+                    );
+
+              }
+
+            }
+
+
+
+            /* --------------------------
+               CREATE LOG CARD
+            -------------------------- */
+
+
+            return `
+
+
+              <div class="log-item">
+
+
+                <div class="log-item-top">
+
+
+                  <div class="serial">
+
+                    Tool Box
+                    ${escapeHtml(
+
+                      formatToolBox(
+                        log.serialNumber
+                      )
+
+                    )}
+
+                  </div>
+
+
+
+                  <span class="pill">
+
+                    ${escapeHtml(
+
+                      formatDate(
+                        log.entryDate
+                      )
+
+                    )}
+
+                  </span>
+
+
+                </div>
+
+
+
+                <div class="meta">
+
+
+                  <strong>
+
+                    Crew Member:
+
+                  </strong>
+
+
+                  ${escapeHtml(
+
+                    log.crewMember
+
+                    ||
+
+                    "Not Entered"
+
+                  )}
+
+
+                </div>
+
+
+
+                <div class="meta">
+
+
+                  <strong>
+
+                    Checklist:
+
+                  </strong>
+
+
+                  ${escapeHtml(
+
+                    log.checklistName
+
+                  )}
+
+
+                </div>
+
+
+
+                <div class="small-title">
+
+
+                  ${
+                    hasMissing
+
+                    ?
+
+                    "Missing Items"
+
+                    :
+
+                    "Inspection Status"
+                  }
+
+
+                </div>
+
+
+
+                <div>
+
+                  ${missingHTML}
+
+                </div>
+
+
+
+                ${
+                  log.notes
+
+                  ?
+
+                  `
+
+                    <div class="notes-box">
+
+                      <strong>
+
+                        Notes:
+
+                      </strong>
+
+                      ${escapeHtml(
+                        log.notes
+                      )}
+
+                    </div>
+
+                  `
+
+                  :
+
+                  ""
+                }
+
+
+
+                ${
+                  submitted
+
+                  ?
+
+                  `
+
+                    <div class="log-created">
+
+                      Submitted:
+
+                      ${escapeHtml(
+                        submitted
+                      )}
+
+                    </div>
+
+                  `
+
+                  :
+
+                  ""
+                }
+
+
+              </div>
+
+
+            `;
+
+          }
+
+        )
+
+        .join("");
+
+    }
+
+
+
+    /* ==========================================================
+       CLEAR FILTERS
+    ========================================================== */
+
+
+    function clearFilters() {
+
+
+      filterDateFromEl.value =
+        "";
+
+
+      filterDateToEl.value =
+        "";
+
+
+      filterToolBoxEl.value =
+        "";
+
+
+      filterCrewEl.value =
+        "";
+
+
+      filterStatusEl.value =
+        "";
+
+
+      renderLogs();
+
+    }
+
+
+
+    /* ==========================================================
+       FILTER EVENTS
+    ========================================================== */
+
+
+    filterDateFromEl
+      .addEventListener(
+
+        "change",
+
+        renderLogs
+
+      );
+
+
+
+    filterDateToEl
+      .addEventListener(
+
+        "change",
+
+        renderLogs
+
+      );
+
+
+
+    filterToolBoxEl
+      .addEventListener(
+
+        "change",
+
+        renderLogs
+
+      );
+
+
+
+    filterCrewEl
+      .addEventListener(
+
+        "input",
+
+        renderLogs
+
+      );
+
+
+
+    filterStatusEl
+      .addEventListener(
+
+        "change",
+
+        renderLogs
+
+      );
+
+
+
+    /* ==========================================================
+       LOAD LOGS WHEN PAGE OPENS
+    ========================================================== */
+
+
+    loadLogs();
+
+
   </script>
+
+
 </body>
+
 </html>
