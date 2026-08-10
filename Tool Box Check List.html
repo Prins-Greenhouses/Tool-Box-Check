@@ -693,7 +693,17 @@
   </main>
 
   <footer>Tool Checklist Log</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script>
+  const SUPABASE_URL = "YOUR_SUPABASE_URL";
+  const SUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
+
+  const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+</script>
   <script>
     const CHECKLIST_STATE_KEY = 'toolChecklistState';
     const LOG_STORAGE_KEY = 'toolChecklistLog';
@@ -900,30 +910,182 @@
       return { serialNumber, crewMember, entryDate, missingItems };
     }
 
-    function addEntry() {
-      const { serialNumber, crewMember, entryDate, missingItems } = collectFormData();
+    async function addEntry() {
 
-      if (!serialNumber || !crewMember || !entryDate) {
-        showStatus('Please fill in tool box number, crew member name, and date.', true);
-        return;
-      }
+  const {
+    serialNumber,
+    crewMember,
+    entryDate,
+    missingItems
+  } = collectFormData();
 
-      const entry = {
-        id: Date.now(),
-        serialNumber,
-        crewMember,
-        entryDate,
-        missingItems,
-        createdAt: new Date().toISOString()
-      };
 
-      const log = getLog();
-      log.unshift(entry);
-      saveLog(log);
-      renderLog();
-      saveChecklistState();
-      showStatus('Entry added to log.');
+  // ============================================
+  // VALIDATE FORM
+  // ============================================
+
+  if (!serialNumber || !crewMember || !entryDate) {
+
+    showStatus(
+      'Please fill in tool box number, crew member name, and date.',
+      true
+    );
+
+    return;
+  }
+
+
+  showStatus('Saving inspection...');
+
+
+  try {
+
+    // ============================================
+    // GET LOGGED-IN PROJECT MANAGER
+    // ============================================
+
+    const {
+      data: userData,
+      error: userError
+    } = await supabaseClient.auth.getUser();
+
+
+    if (userError || !userData.user) {
+
+      console.error(
+        'Supabase user error:',
+        userError
+      );
+
+      showStatus(
+        'You must be logged in to save an inspection.',
+        true
+      );
+
+      return;
     }
+
+
+    const loggedInUser = userData.user;
+
+
+    console.log(
+      'Saving inspection as user:',
+      loggedInUser.id
+    );
+
+
+    // ============================================
+    // SAVE TO SUPABASE
+    // ============================================
+
+    const {
+      error: insertError
+    } = await supabaseClient
+      .from('tool_checklist_logs')
+      .insert({
+
+        // Project manager who is logged in
+        user_id: loggedInUser.id,
+
+        // Toolbox being inspected
+        serial_number: serialNumber,
+
+        // Toolbox owner
+        crew_member: crewMember,
+
+        // Inspection date
+        entry_date: entryDate,
+
+        // Array of missing items
+        missing_items: missingItems
+
+      });
+
+
+    // ============================================
+    // SUPABASE ERROR
+    // ============================================
+
+    if (insertError) {
+
+      console.error(
+        'Supabase insert error:',
+        insertError
+      );
+
+      showStatus(
+        'Could not save inspection: ' +
+        insertError.message,
+        true
+      );
+
+      return;
+    }
+
+
+    // ============================================
+    // KEEP YOUR EXISTING LOCAL LOG
+    // ============================================
+
+    const entry = {
+
+      id: Date.now(),
+
+      serialNumber,
+
+      crewMember,
+
+      entryDate,
+
+      missingItems,
+
+      createdAt:
+        new Date().toISOString()
+
+    };
+
+
+    const log = getLog();
+
+    log.unshift(entry);
+
+    saveLog(log);
+
+    renderLog();
+
+    saveChecklistState();
+
+
+    // ============================================
+    // SUCCESS
+    // ============================================
+
+    showStatus(
+      '✓ Inspection saved successfully.'
+    );
+
+
+    console.log(
+      'Inspection saved to Supabase.'
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      'Unexpected Supabase error:',
+      error
+    );
+
+    showStatus(
+      'Could not connect to Supabase.',
+      true
+    );
+
+  }
+
+}
 
     function escapeHtml(text) {
       return String(text ?? '')
