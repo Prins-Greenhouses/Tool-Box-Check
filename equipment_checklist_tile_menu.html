@@ -1,0 +1,1727 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Equipment Checklist Log</title>
+
+  <style>
+    :root {
+      --bg: #eaf6ff;
+      --primary: #4da3ff;
+      --primary-dark: #2d7dd2;
+      --card: rgba(255,255,255,0.72);
+      --text: #1a2a3a;
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --line: rgba(26,42,58,0.12);
+      --good: #1d8f5f;
+      --danger: #c63b5d;
+      --warning: #9a6a00;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #092B9C, #2DA0ED);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      text-align: center;
+      padding: 28px 20px 18px;
+    }
+
+    .topbar {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .logo {
+      width: min(340px, 78vw);
+      height: min(340px, 78vw);
+      margin: 0 auto 15px;
+      border-radius: 20px;
+      background: #57a4f2;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    .logo img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #fff;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    main {
+      flex: 1;
+      padding: 24px 16px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page-wrap {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      justify-items: center;
+    }
+
+    .container,
+    .log-panel {
+      width: min(920px, 100%);
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .card-subtitle {
+      margin: 0 0 18px;
+      opacity: 0.75;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .entry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .field input[type="text"],
+    .field input[type="date"],
+    .field select,
+    .field textarea,
+    .item-comment {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 15px;
+      background: rgba(255,255,255,0.88);
+      color: var(--text);
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus,
+    .item-comment:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(77,163,255,.18);
+    }
+
+    .source-note,
+    .warning-box {
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin: 4px 0 18px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .source-note {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+    }
+
+    .warning-box {
+      background: #fff5d8;
+      border: 1px solid #e6c86b;
+      color: #684c00;
+      font-weight: 700;
+    }
+
+    .category {
+      max-width: 820px;
+      margin: 0 auto 24px;
+    }
+
+    .category h3 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 18px;
+      color: var(--text);
+    }
+
+    .category-subtitle {
+      text-align: center;
+      font-size: 13px;
+      opacity: .72;
+      margin: -6px 0 14px;
+    }
+
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .check-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 74px;
+      transition: background .15s ease, border-color .15s ease;
+    }
+
+    .check-item.complete {
+      background: #e9f8f1;
+      border-color: #8fd0b5;
+    }
+
+    .check-item.missing {
+      background: #ffe7ec;
+      border-color: #e7a3b5;
+    }
+
+    .check-item.unanswered {
+      background: rgba(255,255,255,0.74);
+    }
+
+    .task-copy {
+      min-width: 0;
+    }
+
+    .task-name {
+      display: block;
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .task-frequency {
+      display: inline-flex;
+      margin-top: 7px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #dcebff;
+      color: var(--primary-dark);
+      font-size: 11px;
+      font-weight: 800;
+      border: 1px solid rgba(77,163,255,.25);
+    }
+
+    .yn-group {
+      display: grid;
+      grid-template-columns: repeat(2, 70px);
+      gap: 8px;
+    }
+
+    .yn-btn {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 10px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .yn-btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--primary);
+    }
+
+    .yn-btn.selected-yes {
+      background: var(--good);
+      color: #fff;
+      border-color: var(--good);
+    }
+
+    .yn-btn.selected-no {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+
+    .item-comment {
+      grid-column: 1 / -1;
+      display: none;
+      padding: 11px 13px;
+      font-size: 13px;
+    }
+
+    .check-item.missing .item-comment {
+      display: block;
+    }
+
+    .empty-checklist {
+      text-align: center;
+      padding: 24px 18px;
+      border: 1px dashed rgba(26,42,58,0.18);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.45);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+
+
+    /* ---------------------------------------------------------------------
+       EQUIPMENT TILE MENU
+       Large touch-friendly equipment choices replace the equipment dropdown.
+       --------------------------------------------------------------------- */
+    .equipment-menu {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .equipment-menu-title {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 25px;
+    }
+
+    .equipment-menu-subtitle {
+      margin: 0 auto 22px;
+      text-align: center;
+      max-width: 680px;
+      font-size: 14px;
+      line-height: 1.45;
+      opacity: .76;
+    }
+
+    .equipment-tile-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .equipment-tile {
+      appearance: none;
+      border: 2px solid rgba(255,255,255,.7);
+      border-radius: 24px;
+      min-height: 220px;
+      padding: 24px 18px;
+      background: linear-gradient(155deg, rgba(255,255,255,.97), rgba(226,241,255,.93));
+      color: var(--text);
+      box-shadow: 0 12px 28px rgba(15,66,128,.16);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      text-align: center;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .equipment-tile:hover,
+    .equipment-tile:focus-visible {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 34px rgba(15,66,128,.22);
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    .equipment-tile-icon {
+      width: 94px;
+      height: 94px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      background: #57a4f2;
+      color: #fff;
+      font-size: 50px;
+      line-height: 1;
+      box-shadow: 0 10px 24px rgba(45,125,210,.23);
+    }
+
+    .equipment-tile-name {
+      font-size: 21px;
+      line-height: 1.1;
+      font-weight: 850;
+      color: var(--primary-dark);
+    }
+
+    .equipment-tile-copy {
+      max-width: 230px;
+      font-size: 13px;
+      line-height: 1.35;
+      opacity: .72;
+    }
+
+    .equipment-form {
+      display: none;
+    }
+
+    .equipment-form.active {
+      display: block;
+    }
+
+    .equipment-selection-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 13px 15px;
+      margin-bottom: 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid var(--line);
+    }
+
+    .selected-equipment {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .selected-equipment-icon {
+      width: 46px;
+      height: 46px;
+      flex: 0 0 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: #57a4f2;
+      color: #fff;
+      font-size: 25px;
+    }
+
+    .selected-equipment-label {
+      font-size: 12px;
+      opacity: .7;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .selected-equipment-name {
+      font-size: 18px;
+      font-weight: 850;
+      color: var(--primary-dark);
+      line-height: 1.15;
+    }
+
+    .change-equipment-btn {
+      border: 1px solid var(--primary);
+      background: #fff;
+      color: var(--primary-dark);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .change-equipment-btn:hover {
+      background: #eef7ff;
+    }
+
+    #equipmentType {
+      display: none;
+    }
+
+    .progress-wrap {
+      margin: 0 auto 20px;
+      max-width: 820px;
+    }
+
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    .progress-track {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.5);
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--primary-dark);
+      transition: width .2s ease;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(12px, 2vw, 24px);
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 1000px;
+      margin: 24px auto 0;
+    }
+
+    .btn {
+      width: clamp(140px, 18vw, 190px);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 18px;
+      border: none;
+      border-radius: 24px;
+      background: #57a4f2;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(60,120,190,.18);
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 36px rgba(60,120,190,.22);
+    }
+
+    .btn span {
+      font-size: clamp(14px, 1.2vw, 18px);
+      font-weight: 700;
+      line-height: 1.2;
+      max-width: 90%;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status {
+      margin-top: 18px;
+      min-height: 22px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .log-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .log-count {
+      font-size: 14px;
+      opacity: .75;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+      align-items: end;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-inline {
+      width: auto;
+      aspect-ratio: auto;
+      min-height: 50px;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 14px;
+      box-shadow: 0 8px 22px rgba(60,120,190,.14);
+    }
+
+    .log-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .log-item {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .log-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .serial {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #dcebff;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 4px 6px 0 0;
+      border: 1px solid rgba(77,163,255,.25);
+    }
+
+    .pill.issue {
+      background: #ffe7ec;
+      color: #a12f4b;
+      border-color: #e7a3b5;
+    }
+
+    .meta {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    .small-title {
+      margin: 10px 0 6px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--primary-dark);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 26px 18px;
+      border: 1px dashed rgba(26,42,58,0.18);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.45);
+      font-size: 14px;
+      opacity: .85;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      opacity: 0.85;
+      color: rgba(255,255,255,0.92);
+    }
+
+
+    @media (max-width: 800px) {
+      .equipment-tile-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .entry-grid,
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+
+      .equipment-tile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .equipment-tile {
+        min-height: 150px;
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+        padding: 18px;
+      }
+
+      .equipment-tile-icon {
+        width: 72px;
+        height: 72px;
+        flex: 0 0 72px;
+        font-size: 38px;
+      }
+
+      .equipment-tile-copy {
+        max-width: none;
+      }
+
+      .equipment-selection-bar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .change-equipment-btn {
+        width: 100%;
+      }
+
+      header {
+        padding: 22px 16px 12px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      main {
+        padding: 16px 12px 32px;
+      }
+
+      .container,
+      .log-panel {
+        padding: 16px;
+      }
+
+      .btn {
+        width: 100%;
+        aspect-ratio: auto;
+        min-height: 74px;
+        border-radius: 18px;
+      }
+
+      .check-item {
+        grid-template-columns: 1fr;
+      }
+
+      .yn-group {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .item-comment {
+        grid-column: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">
+      <img src="logo.png" alt="Logo">
+    </div>
+
+    <div class="topbar">
+      <button class="btn secondary" style="width:auto;aspect-ratio:auto;padding:14px 24px;" onclick="location.href='Main Menu.html'">
+        <span>Return Home</span>
+      </button>
+    </div>
+
+    <h1>Equipment Checklist</h1>
+    <div class="subtitle">Daily / Weekly inspections, Saved log, and Log Export</div>
+  </header>
+
+  <main>
+    <div class="page-wrap">
+      <section class="container">
+        <div class="equipment-menu" id="equipmentMenu">
+          <h2 class="equipment-menu-title">Select Equipment</h2>
+          <p class="equipment-menu-subtitle">Tap the machine you are inspecting. The correct Daily / Weekly checklist will open automatically.</p>
+
+          <div class="equipment-tile-grid">
+            <button type="button" class="equipment-tile" onclick="selectEquipment('TRACTOR')">
+              <span class="equipment-tile-icon" aria-hidden="true">🚜</span>
+              <span class="equipment-tile-name">Tractor</span>
+              <span class="equipment-tile-copy">Open the Tractor daily inspection checklist.</span>
+            </button>
+
+            <button type="button" class="equipment-tile" onclick="selectEquipment('SKIDSTEER')">
+              <span class="equipment-tile-icon" aria-hidden="true">🏗️</span>
+              <span class="equipment-tile-name">Skidsteer</span>
+              <span class="equipment-tile-copy">Open the Skidsteer weekly inspection checklist.</span>
+            </button>
+
+            <button type="button" class="equipment-tile" onclick="selectEquipment('BUILDING_MACHINE')">
+              <span class="equipment-tile-icon" aria-hidden="true">↕️</span>
+              <span class="equipment-tile-name">Scissor Lift / Building Machine</span>
+              <span class="equipment-tile-copy">Open Daily, Weekly, or additional building-machine checks.</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="equipment-form" id="equipmentForm">
+          <div class="equipment-selection-bar">
+            <div class="selected-equipment">
+              <div class="selected-equipment-icon" id="selectedEquipmentIcon" aria-hidden="true">🚜</div>
+              <div>
+                <div class="selected-equipment-label">Selected Equipment</div>
+                <div class="selected-equipment-name" id="selectedEquipmentName">Tractor</div>
+              </div>
+            </div>
+            <button type="button" class="change-equipment-btn" onclick="showEquipmentMenu()">Change Equipment</button>
+          </div>
+
+          <h2 class="card-title">Equipment Inspection</h2>
+          <p class="card-subtitle">Choose the inspection type, answer every checklist item, add comments for any No response, then save the inspection.</p>
+
+          <!-- Kept as a hidden field so the existing checklist / Supabase logic stays the same. -->
+          <select id="equipmentType" aria-hidden="true" tabindex="-1">
+            <option value="TRACTOR">Tractor</option>
+            <option value="SKIDSTEER">Skidsteer</option>
+            <option value="BUILDING_MACHINE">Scissor Lift / Building Machine</option>
+          </select>
+
+          <div class="entry-grid">
+            <div class="field">
+              <label for="inspectionType">Inspection Type</label>
+              <select id="inspectionType"></select>
+            </div>
+
+          <div class="field">
+            <label for="machineCode">Machine Code</label>
+            <input id="machineCode" type="text" placeholder="Example: FA_3014">
+          </div>
+
+          <div class="field">
+            <label for="operatorName">Machine Operator Name / Initials</label>
+            <input id="operatorName" type="text" placeholder="Enter operator name or initials">
+          </div>
+
+          <div class="field">
+            <label for="entryDate">Date</label>
+            <input id="entryDate" type="date">
+          </div>
+
+          <div class="field">
+            <label for="sourceVersion">Checklist Version</label>
+            <input id="sourceVersion" type="text" value="2024 PDF" readonly>
+          </div>
+        </div>
+
+        <div class="source-note" id="sourceNote"></div>
+        <div class="warning-box" id="warningBox"></div>
+
+        <div class="progress-wrap">
+          <div class="progress-head">
+            <span>Checklist Progress</span>
+            <span id="progressText">0 / 0 answered</span>
+          </div>
+          <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+
+        <div id="equipmentChecklist"></div>
+
+        <div class="field full" style="margin-top:20px;">
+          <label for="generalComments">Additional Notes / Comments</label>
+          <textarea id="generalComments" placeholder="Add maintenance notes, leaks, damage, follow-up required, etc."></textarea>
+        </div>
+
+        <div class="button-row">
+          <button class="btn" id="saveInspectionBtn" onclick="addEntry()"><span>Save Inspection</span></button>
+          <button class="btn secondary" onclick="clearChecklist()"><span>Clear Checklist</span></button>
+          <button class="btn" onclick="markAllYes()"><span>Mark All Yes</span></button>
+        </div>
+
+        <div class="status" id="statusMsg"></div>
+        </div><!-- /equipmentForm -->
+      </section>
+
+      <section class="log-panel">
+        <div class="log-head">
+          <div>
+            <h2 class="card-title" style="margin-bottom:4px;">Inspection Log</h2>
+            <div class="log-count" id="logCount">0 entries shown</div>
+          </div>
+        </div>
+
+        <div class="filter-grid">
+          <div class="field">
+            <label for="filterDateFrom">Filter Date From</label>
+            <input id="filterDateFrom" type="date">
+          </div>
+
+          <div class="field">
+            <label for="filterDateTo">Filter Date To</label>
+            <input id="filterDateTo" type="date">
+          </div>
+
+          <div class="field">
+            <label for="filterEquipment">Equipment Type</label>
+            <select id="filterEquipment">
+              <option value="">All Equipment</option>
+              <option value="TRACTOR">Tractor</option>
+              <option value="SKIDSTEER">Skidsteer</option>
+              <option value="BUILDING_MACHINE">Scissor Lift / Building Machine</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="filterMachine">Machine Code</label>
+            <select id="filterMachine">
+              <option value="">All Machines</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-actions" style="margin-bottom:18px;">
+          <button class="btn secondary btn-inline" onclick="clearFilters()"><span>Clear Filters</span></button>
+          <button class="btn btn-inline" onclick="loadLogs()"><span>Refresh Log</span></button>
+        </div>
+
+        <div class="log-list" id="logList"></div>
+
+        <div class="button-row">
+          <button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
+          <button class="btn" onclick="shareFilteredCSV()"><span>Share Filtered Log</span></button>
+          <button class="btn secondary" style="width:auto;aspect-ratio:auto;padding:14px 24px;" onclick="location.href='Main Menu.html'"><span>Return Home</span></button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>Equipment Checklist Log</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // SUPABASE
+    // Reuses the same Supabase project / publishable key as your existing page.
+    // This page expects the table created by the accompanying SQL file:
+    // equipment_checklist_logs
+    // -------------------------------------------------------------------------
+    const SUPABASE_URL = "https://xlocuvsgpvfglpmvtekc.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_wqFCN6y-w6T7cft5PUCfRw_001kKWLY";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const TABLE_NAME = 'equipment_checklist_logs';
+    const DRAFT_KEY = 'equipmentChecklistDraft_v1';
+
+    // -------------------------------------------------------------------------
+    // CHECKLIST CONTENT TAKEN FROM THE ATTACHED PDF
+    // Items with no Daily / Weekly frequency on PDF page 6 are kept separate
+    // under "Additional / Unassigned" so their frequency is not guessed.
+    // -------------------------------------------------------------------------
+    const CHECKLISTS = {
+      TRACTOR: {
+        label: 'Tractor',
+        inspections: {
+          DAILY: {
+            label: 'Daily',
+            items: [
+              'Grease Nipples - Lubricate',
+              'Check Oil (add if necessary)',
+              'Check hydraulic oil',
+              'Check fuel',
+              'Check & clean Air Filter',
+              'Check & note cleaniless of cab',
+              'Check & note cleaniless of machine',
+              'Tires - clean & inspect',
+              'Check & Inspect full range of lift movement',
+              'Other maintenance notes'
+            ]
+          }
+        },
+        sourceNote: 'The Tractor page contains named Daily checklist items. Its Weekly checklist area is present in the PDF but does not contain named tasks, so no Tractor weekly tasks were invented here.',
+        warning: 'Please make note of all leaks or problems + Report them to Prins Heavy Duty Mechanic at 236-332-7071 (Nick).'
+      },
+
+      SKIDSTEER: {
+        label: 'Skidsteer',
+        inspections: {
+          WEEKLY: {
+            label: 'Weekly',
+            items: [
+              'Fluids (engine oil, hydraulic oil, antifreeze)',
+              'Check engine belts (loose/cracked/worn)',
+              'Check Air Filters (need cleaning or replacement)',
+              'Tracks/Tires (inspect rollers,tension, track condition,air pressure)',
+              'Boom/bucket pins',
+              'Hydraulic hoses (loose, damage or leaking)',
+              'Engine starting',
+              'Lights, horn, seat belt/safety guard, seat condition, and backup alarm',
+              'Body damage, missing placards',
+              'Equipment is safe operating condition?'
+            ]
+          }
+        },
+        sourceNote: 'The Skidsteer checklist is presented as a weekly checklist in the PDF and includes 10 Yes / No inspection items.',
+        warning: 'PLEASE NOTE THAT THIS CHECKLIST MUST BE COMPLETED BY SUPERVISORS OR TRAINED PERSON. Please make note of all leaks or problems + Report them to SUPERVISOR!'
+      },
+
+      BUILDING_MACHINE: {
+        label: 'Scissor Lift / Building Machine',
+        inspections: {
+          DAILY: {
+            label: 'Daily',
+            items: [
+              'Grease Nipples Grease Nipples - Lubricate as per lube chart',
+              'Have the Engine and hydraulic Oil Levels been checked?',
+              'Check V-Belt (no cracking/fraying)',
+              'Diesel/ Propane tank is full?',
+              'Is the machine cab clean and free of dirt/mud?',
+              'The horn works when knob is pushed',
+              'The machine has no hose or fuel leaks?',
+              'Have you checked the tracks/tires and confirm they are in working condition?',
+              'All warning & working lights working',
+              'Platform floor and tracks clean of mud, grease, oil'
+            ]
+          },
+          WEEKLY: {
+            label: 'Weekly',
+            items: [
+              'Is the Platform floor clean of mud, grease, and oil?',
+              'Has the tension of the tracks/tires been checked?',
+              'Air filters check & clean',
+              'Manual is located on machine',
+              'Are the machine stickes and company logos in good condition?'
+            ]
+          },
+          ADDITIONAL: {
+            label: 'Additional / Unassigned',
+            items: [
+              'Control box & buttons not damaged (water resistant)',
+              'Any Abnotrmal behavior?',
+              'Loose bolts (tighten if possible), parts, & panels',
+              'Hinge Points',
+              'Guard Rails',
+              'Machine moves & stops evenly if both joysticks move forward',
+              'Lubricate Boom sections & check if properly shimmed',
+              'Check & Inspect full range of lift movement',
+              'Check if backup alarm works properly',
+              'Hinges of Scissors (16x)',
+              'Rotation points of hydraulic elevation cylinder (4x) if applicable',
+              'Levelling frame (4x)',
+              'Engine Oil and hoses have been checked?',
+              'Grease Nipples - Lubricate',
+              'Check Oil (add if necessary)',
+              'Check hydraulic oil',
+              'Fuel levels have been checked?',
+              'Air Filter has been checked and cleaned?',
+              'Lift movement has been inspected?',
+              'Any leakage has been checked and reported?',
+              'Tensions of the tracks/tires has been checked?',
+              'All warnings and lights are working?',
+              'Fluid levels have been checked and are sufficient to operate?',
+              'Guard Rails',
+              'Motions Alarms are operating?',
+              'Steering',
+              'Check & note cleaniless of machine',
+              'Tires/tracks are in working condition?',
+              'Any abnormal issue has been reported?',
+              'Battery',
+              'Decals/Name Plates',
+              'Emergency Stop and Lowering Function'
+            ]
+          }
+        },
+        sourceNote: 'The Building Machines form itself contains blank checklist rows. PDF page 6 provides a task list; tasks explicitly marked Daily or Weekly are separated accordingly, while tasks with no frequency shown are kept under Additional / Unassigned.',
+        warning: 'Please make note of all leaks or problems + Report them to Prins Heavy Duty Mechanic at 236-332-7071 (Nick).'
+      }
+    };
+
+    const equipmentTypeEl = document.getElementById('equipmentType');
+    const equipmentMenuEl = document.getElementById('equipmentMenu');
+    const equipmentFormEl = document.getElementById('equipmentForm');
+    const selectedEquipmentNameEl = document.getElementById('selectedEquipmentName');
+    const selectedEquipmentIconEl = document.getElementById('selectedEquipmentIcon');
+    const inspectionTypeEl = document.getElementById('inspectionType');
+    const machineCodeEl = document.getElementById('machineCode');
+    const operatorNameEl = document.getElementById('operatorName');
+    const entryDateEl = document.getElementById('entryDate');
+    const generalCommentsEl = document.getElementById('generalComments');
+    const checklistEl = document.getElementById('equipmentChecklist');
+    const sourceNoteEl = document.getElementById('sourceNote');
+    const warningBoxEl = document.getElementById('warningBox');
+    const progressTextEl = document.getElementById('progressText');
+    const progressBarEl = document.getElementById('progressBar');
+    const statusMsgEl = document.getElementById('statusMsg');
+    const saveInspectionBtnEl = document.getElementById('saveInspectionBtn');
+
+    const logListEl = document.getElementById('logList');
+    const logCountEl = document.getElementById('logCount');
+    const filterDateFromEl = document.getElementById('filterDateFrom');
+    const filterDateToEl = document.getElementById('filterDateTo');
+    const filterEquipmentEl = document.getElementById('filterEquipment');
+    const filterMachineEl = document.getElementById('filterMachine');
+
+    let cachedLogs = [];
+    let currentResponses = {};
+
+    entryDateEl.value = new Date().toISOString().split('T')[0];
+
+    function escapeHtml(text) {
+      return String(text ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showStatus(message, isError = false) {
+      statusMsgEl.textContent = message;
+      statusMsgEl.style.color = isError ? 'var(--danger)' : 'var(--good)';
+
+      if (message) {
+        setTimeout(() => {
+          if (statusMsgEl.textContent === message) statusMsgEl.textContent = '';
+        }, 4200);
+      }
+    }
+
+    const EQUIPMENT_ICONS = {
+      TRACTOR: '🚜',
+      SKIDSTEER: '🏗️',
+      BUILDING_MACHINE: '↕️'
+    };
+
+    function updateSelectedEquipmentHeader() {
+      const config = CHECKLISTS[equipmentTypeEl.value];
+      if (!config) return;
+      selectedEquipmentNameEl.textContent = equipmentTypeEl.value === 'BUILDING_MACHINE'
+        ? 'Scissor Lift / Building Machine'
+        : config.label;
+      selectedEquipmentIconEl.textContent = EQUIPMENT_ICONS[equipmentTypeEl.value] || '✓';
+    }
+
+    function showEquipmentForm() {
+      equipmentMenuEl.style.display = 'none';
+      equipmentFormEl.classList.add('active');
+      updateSelectedEquipmentHeader();
+    }
+
+    function showEquipmentMenu() {
+      equipmentFormEl.classList.remove('active');
+      equipmentMenuEl.style.display = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectEquipment(value) {
+      if (!CHECKLISTS[value]) return;
+
+      equipmentTypeEl.value = value;
+      populateInspectionTypes();
+
+      if (value === 'SKIDSTEER' && !machineCodeEl.value.trim()) {
+        machineCodeEl.value = 'FA_3014';
+      } else if (value !== 'SKIDSTEER' && machineCodeEl.value.trim() === 'FA_3014') {
+        machineCodeEl.value = '';
+      }
+
+      renderChecklist();
+      updateSelectedEquipmentHeader();
+      showEquipmentForm();
+      saveDraft();
+
+      setTimeout(() => {
+        equipmentFormEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 30);
+    }
+
+    function getEquipmentConfig() {
+      return CHECKLISTS[equipmentTypeEl.value];
+    }
+
+    function getInspectionConfig() {
+      const equipment = getEquipmentConfig();
+      return equipment?.inspections?.[inspectionTypeEl.value] || null;
+    }
+
+    function populateInspectionTypes(preferredValue = '') {
+      const equipment = getEquipmentConfig();
+      const entries = Object.entries(equipment.inspections);
+
+      inspectionTypeEl.innerHTML = entries
+        .map(([value, config]) => `<option value="${escapeHtml(value)}">${escapeHtml(config.label)}</option>`)
+        .join('');
+
+      if (preferredValue && equipment.inspections[preferredValue]) {
+        inspectionTypeEl.value = preferredValue;
+      }
+    }
+
+    function renderChecklist(savedResponses = null) {
+      const equipment = getEquipmentConfig();
+      const inspection = getInspectionConfig();
+
+      sourceNoteEl.textContent = equipment.sourceNote;
+      warningBoxEl.textContent = equipment.warning;
+
+      currentResponses = {};
+
+      if (!inspection || !inspection.items.length) {
+        checklistEl.innerHTML = '<div class="empty-checklist">No named checklist items are available in the attached PDF for this selection.</div>';
+        updateProgress();
+        return;
+      }
+
+      const savedMap = new Map((savedResponses || []).map(item => [item.task, item]));
+
+      checklistEl.innerHTML = `
+        <div class="category">
+          <h3>${escapeHtml(equipment.label)} — ${escapeHtml(inspection.label)} Checklist</h3>
+          <div class="category-subtitle">Use Yes / No for each item. A comment is required for every No response.</div>
+          <div class="checklist-grid">
+            ${inspection.items.map((task, index) => {
+              const saved = savedMap.get(task) || {};
+              const result = saved.result || '';
+              const comment = saved.comment || '';
+              currentResponses[index] = { task, result, comment };
+
+              return `
+                <div class="check-item ${result === 'Yes' ? 'complete' : result === 'No' ? 'missing' : 'unanswered'}" data-index="${index}">
+                  <div class="task-copy">
+                    <span class="task-name">${escapeHtml(task)}</span>
+                    <span class="task-frequency">${escapeHtml(inspection.label)}</span>
+                  </div>
+                  <div class="yn-group">
+                    <button type="button" class="yn-btn ${result === 'Yes' ? 'selected-yes' : ''}" data-result="Yes">Yes</button>
+                    <button type="button" class="yn-btn ${result === 'No' ? 'selected-no' : ''}" data-result="No">No</button>
+                  </div>
+                  <input class="item-comment" type="text" value="${escapeHtml(comment)}" placeholder="Required: describe issue / action needed">
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      updateProgress();
+    }
+
+    function setResponse(index, result) {
+      const itemEl = checklistEl.querySelector(`.check-item[data-index="${index}"]`);
+      if (!itemEl || !currentResponses[index]) return;
+
+      currentResponses[index].result = result;
+
+      itemEl.classList.remove('complete', 'missing', 'unanswered');
+      itemEl.classList.add(result === 'Yes' ? 'complete' : 'missing');
+
+      itemEl.querySelectorAll('.yn-btn').forEach(btn => {
+        btn.classList.remove('selected-yes', 'selected-no');
+        if (btn.dataset.result === result) {
+          btn.classList.add(result === 'Yes' ? 'selected-yes' : 'selected-no');
+        }
+      });
+
+      if (result === 'Yes') {
+        currentResponses[index].comment = '';
+        itemEl.querySelector('.item-comment').value = '';
+      }
+
+      updateProgress();
+      saveDraft();
+    }
+
+    function updateProgress() {
+      const values = Object.values(currentResponses);
+      const answered = values.filter(item => item.result === 'Yes' || item.result === 'No').length;
+      const total = values.length;
+      const percent = total ? Math.round((answered / total) * 100) : 0;
+
+      progressTextEl.textContent = `${answered} / ${total} answered`;
+      progressBarEl.style.width = `${percent}%`;
+    }
+
+    function collectResponses() {
+      return Object.values(currentResponses).map(item => ({
+        task: item.task,
+        result: item.result || '',
+        comment: item.comment || ''
+      }));
+    }
+
+    function validateInspection() {
+      const equipmentType = equipmentTypeEl.value;
+      const inspectionType = inspectionTypeEl.value;
+      const machineCode = machineCodeEl.value.trim();
+      const operatorName = operatorNameEl.value.trim();
+      const entryDate = entryDateEl.value;
+      const responses = collectResponses();
+
+      if (!equipmentType || !inspectionType || !machineCode || !operatorName || !entryDate) {
+        return { ok: false, message: 'Please fill in equipment type, inspection type, machine code, operator name, and date.' };
+      }
+
+      if (!responses.length) {
+        return { ok: false, message: 'There are no checklist items for this selection.' };
+      }
+
+      const unanswered = responses.filter(item => !item.result);
+      if (unanswered.length) {
+        return { ok: false, message: `Please answer every checklist item. ${unanswered.length} item(s) are still unanswered.` };
+      }
+
+      const noWithoutComment = responses.filter(item => item.result === 'No' && !item.comment.trim());
+      if (noWithoutComment.length) {
+        return { ok: false, message: 'Please add a comment for every item marked No.' };
+      }
+
+      return { ok: true, data: { equipmentType, inspectionType, machineCode, operatorName, entryDate, responses } };
+    }
+
+    async function addEntry() {
+      const validation = validateInspection();
+      if (!validation.ok) {
+        showStatus(validation.message, true);
+        return;
+      }
+
+      saveInspectionBtnEl.disabled = true;
+      showStatus('Saving inspection...');
+
+      try {
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+        if (userError || !userData.user) {
+          showStatus('You must be logged in to save an inspection.', true);
+          return;
+        }
+
+        const payload = {
+          user_id: userData.user.id,
+          equipment_type: validation.data.equipmentType,
+          inspection_type: validation.data.inspectionType,
+          machine_code: validation.data.machineCode,
+          operator_name: validation.data.operatorName,
+          entry_date: validation.data.entryDate,
+          responses: validation.data.responses,
+          general_comments: generalCommentsEl.value.trim(),
+          source_version: '2024 PDF'
+        };
+
+        const { error: insertError } = await supabaseClient
+          .from(TABLE_NAME)
+          .insert(payload);
+
+        if (insertError) {
+          console.error('Supabase insert error:', insertError);
+          showStatus('Could not save inspection: ' + insertError.message, true);
+          return;
+        }
+
+        localStorage.removeItem(DRAFT_KEY);
+        showStatus('✓ Inspection saved successfully.');
+        await loadLogs();
+      } catch (error) {
+        console.error('Unexpected Supabase error:', error);
+        showStatus('Could not connect to Supabase.', true);
+      } finally {
+        saveInspectionBtnEl.disabled = false;
+      }
+    }
+
+    function markAllYes() {
+      Object.keys(currentResponses).forEach(index => setResponse(Number(index), 'Yes'));
+      showStatus('All checklist items marked Yes.');
+    }
+
+    function clearChecklist() {
+      machineCodeEl.value = '';
+      operatorNameEl.value = '';
+      entryDateEl.value = new Date().toISOString().split('T')[0];
+      generalCommentsEl.value = '';
+      renderChecklist();
+      localStorage.removeItem(DRAFT_KEY);
+      showStatus('Checklist cleared.');
+    }
+
+    function saveDraft() {
+      const draft = {
+        equipmentType: equipmentTypeEl.value,
+        inspectionType: inspectionTypeEl.value,
+        machineCode: machineCodeEl.value,
+        operatorName: operatorNameEl.value,
+        entryDate: entryDateEl.value,
+        generalComments: generalCommentsEl.value,
+        responses: collectResponses()
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }
+
+    function loadDraft() {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) {
+        populateInspectionTypes();
+        renderChecklist();
+        updateSelectedEquipmentHeader();
+        showEquipmentMenu();
+        return;
+      }
+
+      try {
+        const draft = JSON.parse(raw);
+        if (draft.equipmentType && CHECKLISTS[draft.equipmentType]) {
+          equipmentTypeEl.value = draft.equipmentType;
+        }
+
+        populateInspectionTypes(draft.inspectionType || '');
+        machineCodeEl.value = draft.machineCode || '';
+        operatorNameEl.value = draft.operatorName || '';
+        entryDateEl.value = draft.entryDate || new Date().toISOString().split('T')[0];
+        generalCommentsEl.value = draft.generalComments || '';
+        renderChecklist(draft.responses || []);
+        updateSelectedEquipmentHeader();
+        showEquipmentForm();
+      } catch (error) {
+        console.warn('Draft could not be loaded:', error);
+        populateInspectionTypes();
+        renderChecklist();
+        updateSelectedEquipmentHeader();
+        showEquipmentMenu();
+      }
+    }
+
+    function equipmentLabel(value) {
+      return CHECKLISTS[value]?.label || value || '';
+    }
+
+    function inspectionLabel(equipmentType, inspectionType) {
+      return CHECKLISTS[equipmentType]?.inspections?.[inspectionType]?.label || inspectionType || '';
+    }
+
+    async function loadLogs() {
+      logListEl.innerHTML = '<div class="empty">Loading inspection log...</div>';
+
+      try {
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+        if (userError || !userData.user) {
+          cachedLogs = [];
+          logCountEl.textContent = '0 entries shown';
+          logListEl.innerHTML = '<div class="empty">Log in to view saved equipment inspections.</div>';
+          return;
+        }
+
+        const { data, error } = await supabaseClient
+          .from(TABLE_NAME)
+          .select('id,equipment_type,inspection_type,machine_code,operator_name,entry_date,responses,general_comments,source_version,created_at')
+          .eq('user_id', userData.user.id)
+          .order('entry_date', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(1000);
+
+        if (error) {
+          console.error('Supabase select error:', error);
+          cachedLogs = [];
+          logListEl.innerHTML = `<div class="empty">Could not load log: ${escapeHtml(error.message)}</div>`;
+          logCountEl.textContent = '0 entries shown';
+          return;
+        }
+
+        cachedLogs = data || [];
+        populateMachineFilter();
+        renderLog();
+      } catch (error) {
+        console.error('Unexpected log error:', error);
+        cachedLogs = [];
+        logListEl.innerHTML = '<div class="empty">Could not connect to Supabase.</div>';
+        logCountEl.textContent = '0 entries shown';
+      }
+    }
+
+    function getFilteredLog() {
+      const from = filterDateFromEl.value;
+      const to = filterDateToEl.value;
+      const equipment = filterEquipmentEl.value;
+      const machine = filterMachineEl.value;
+
+      return cachedLogs.filter(entry => {
+        const entryDate = entry.entry_date || '';
+        return (!from || entryDate >= from)
+          && (!to || entryDate <= to)
+          && (!equipment || entry.equipment_type === equipment)
+          && (!machine || entry.machine_code === machine);
+      });
+    }
+
+    function populateMachineFilter() {
+      const selected = filterMachineEl.value;
+      const machines = [...new Set(cachedLogs.map(entry => entry.machine_code).filter(Boolean))]
+        .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }));
+
+      filterMachineEl.innerHTML = '<option value="">All Machines</option>' +
+        machines.map(machine => `<option value="${escapeHtml(machine)}">${escapeHtml(machine)}</option>`).join('');
+
+      if (machines.includes(selected)) filterMachineEl.value = selected;
+    }
+
+    function renderLog() {
+      const filtered = getFilteredLog();
+      logCountEl.textContent = `${filtered.length} entr${filtered.length === 1 ? 'y' : 'ies'} shown`;
+
+      if (!filtered.length) {
+        logListEl.innerHTML = '<div class="empty">No entries match the selected filters.</div>';
+        return;
+      }
+
+      logListEl.innerHTML = filtered.map(entry => {
+        const responses = Array.isArray(entry.responses) ? entry.responses : [];
+        const issues = responses.filter(item => item.result === 'No');
+        const issueHtml = issues.length
+          ? issues.map(item => `<span class="pill issue">${escapeHtml(item.task)}${item.comment ? ` — ${escapeHtml(item.comment)}` : ''}</span>`).join('')
+          : '<div class="meta"><strong>Complete — all items marked Yes</strong></div>';
+
+        return `
+          <div class="log-item">
+            <div class="log-item-top">
+              <div class="serial">${escapeHtml(entry.machine_code)}</div>
+              <span class="pill">${escapeHtml(entry.entry_date)}</span>
+            </div>
+            <div class="meta"><strong>Equipment:</strong> ${escapeHtml(equipmentLabel(entry.equipment_type))}</div>
+            <div class="meta"><strong>Inspection:</strong> ${escapeHtml(inspectionLabel(entry.equipment_type, entry.inspection_type))}</div>
+            <div class="meta"><strong>Operator:</strong> ${escapeHtml(entry.operator_name)}</div>
+            ${entry.general_comments ? `<div class="meta"><strong>Notes:</strong> ${escapeHtml(entry.general_comments)}</div>` : ''}
+            <div class="small-title">Issues / No Responses</div>
+            <div>${issueHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearFilters() {
+      filterDateFromEl.value = '';
+      filterDateToEl.value = '';
+      filterEquipmentEl.value = '';
+      filterMachineEl.value = '';
+      renderLog();
+      showStatus('Log filters cleared.');
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? '');
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function buildCSVContent(entries) {
+      const headers = [
+        'Equipment Type',
+        'Inspection Type',
+        'Machine Code',
+        'Operator Name',
+        'Date',
+        'Status',
+        'No / Issue Items',
+        'Additional Notes',
+        'Checklist Version',
+        'Created At'
+      ];
+
+      const rows = entries.map(entry => {
+        const responses = Array.isArray(entry.responses) ? entry.responses : [];
+        const issues = responses.filter(item => item.result === 'No');
+        const issueText = issues.length
+          ? issues.map(item => `${item.task}${item.comment ? `: ${item.comment}` : ''}`).join(' | ')
+          : 'None';
+
+        return [
+          equipmentLabel(entry.equipment_type),
+          inspectionLabel(entry.equipment_type, entry.inspection_type),
+          entry.machine_code,
+          entry.operator_name,
+          entry.entry_date,
+          issues.length ? 'Issues Found' : 'Complete',
+          issueText,
+          entry.general_comments || '',
+          entry.source_version || '',
+          entry.created_at || ''
+        ];
+      });
+
+      return [headers, ...rows]
+        .map(row => row.map(csvEscape).join(','))
+        .join('\n');
+    }
+
+    function createCSVBlob(entries) {
+      return new Blob([buildCSVContent(entries)], { type: 'text/csv;charset=utf-8;' });
+    }
+
+    function getExportFileName() {
+      const fromPart = filterDateFromEl.value || 'start';
+      const toPart = filterDateToEl.value || 'end';
+      const equipmentPart = filterEquipmentEl.value || 'all-equipment';
+      const machinePart = (filterMachineEl.value || 'all-machines').replace(/[^a-z0-9_-]+/gi, '_');
+      return `equipment_checklist_log_${equipmentPart}_${machinePart}_${fromPart}_to_${toPart}.csv`;
+    }
+
+    function downloadBlob(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadCSV() {
+      const filtered = getFilteredLog();
+      if (!filtered.length) {
+        showStatus('There are no filtered log entries to download.', true);
+        return;
+      }
+
+      downloadBlob(createCSVBlob(filtered), getExportFileName());
+      showStatus('Filtered CSV downloaded.');
+    }
+
+    async function shareFilteredCSV() {
+      const filtered = getFilteredLog();
+      if (!filtered.length) {
+        showStatus('There are no filtered log entries to share.', true);
+        return;
+      }
+
+      const fileName = getExportFileName();
+      const blob = createCSVBlob(filtered);
+      const file = new File([blob], fileName, { type: 'text/csv' });
+      const subject = 'Equipment Checklist Log Export';
+      const body = [
+        'Attached is the filtered Equipment Checklist log export.',
+        '',
+        `Date from: ${filterDateFromEl.value || 'Beginning'}`,
+        `Date to: ${filterDateToEl.value || 'End'}`,
+        `Equipment filter: ${filterEquipmentEl.value ? equipmentLabel(filterEquipmentEl.value) : 'All equipment'}`,
+        `Machine filter: ${filterMachineEl.value || 'All machines'}`,
+        `Entries included: ${filtered.length}`
+      ].join('\n');
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ title: subject, text: body, files: [file] });
+          showStatus('Share sheet opened.');
+          return;
+        } catch (error) {
+          if (error?.name === 'AbortError') {
+            showStatus('Share canceled.', true);
+            return;
+          }
+        }
+      }
+
+      downloadBlob(blob, fileName);
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + '\n\nThe CSV file has been downloaded. Attach it before sending.')}`;
+      showStatus('CSV downloaded and mail app opened. Attach the downloaded CSV before sending.');
+    }
+
+    checklistEl.addEventListener('click', (event) => {
+      const button = event.target.closest('.yn-btn');
+      if (!button) return;
+      const item = button.closest('.check-item');
+      setResponse(Number(item.dataset.index), button.dataset.result);
+    });
+
+    checklistEl.addEventListener('input', (event) => {
+      if (!event.target.matches('.item-comment')) return;
+      const item = event.target.closest('.check-item');
+      const index = Number(item.dataset.index);
+      if (!currentResponses[index]) return;
+      currentResponses[index].comment = event.target.value;
+      saveDraft();
+    });
+
+    equipmentTypeEl.addEventListener('change', () => {
+      populateInspectionTypes();
+      if (equipmentTypeEl.value === 'SKIDSTEER' && !machineCodeEl.value.trim()) {
+        machineCodeEl.value = 'FA_3014';
+      }
+      renderChecklist();
+      updateSelectedEquipmentHeader();
+      saveDraft();
+    });
+
+    inspectionTypeEl.addEventListener('change', () => {
+      renderChecklist();
+      saveDraft();
+    });
+
+    [machineCodeEl, operatorNameEl, entryDateEl, generalCommentsEl].forEach(el => {
+      el.addEventListener('input', saveDraft);
+      el.addEventListener('change', saveDraft);
+    });
+
+    [filterDateFromEl, filterDateToEl, filterEquipmentEl, filterMachineEl].forEach(el => {
+      el.addEventListener('change', renderLog);
+    });
+
+    loadDraft();
+    loadLogs();
+  </script>
+</body>
+</html>
