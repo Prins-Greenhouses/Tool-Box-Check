@@ -233,9 +233,41 @@
 
 }
 
+.notification-btn {
+    position: relative;
+}
 
+.notification-badge {
+    position: absolute;
+
+    top: 12px;
+    right: 12px;
+
+    min-width: 28px;
+    height: 28px;
+
+    padding: 0 7px;
+
+    border-radius: 20px;
+
+    background: #dc2626;
+    color: white;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid white;
+
+    box-shadow: 0 3px 10px rgba(0,0,0,.25);
+}
 
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -276,17 +308,60 @@
     <span>Equipment Checklists</span>
   </button> 
 
-   <button class="btn" onclick="location.href='Notifications.html'">
-        <span class="notification-bell">
+  <button
+    class="btn notification-btn"
+    onclick="location.href='Notifications.html'"
+>
+
+    <span class="notification-bell">
         🔔
     </span>
+
     <span>Notifications</span>
-  </button>
+
+    <span
+        id="notificationBadge"
+        class="notification-badge"
+    >
+        0
+    </span>
+
+</button>
 
 </div>
 </main>
   <script>
-    async function updateNotificationBadge() {
+
+/* ==========================================================
+   SUPABASE CONNECTION
+
+   COPY THESE TWO VALUES FROM YOUR Notifications.html PAGE
+   ========================================================== */
+
+const SUPABASE_URL =
+    "https://xlocuvsgpvfglpmvtekc.supabase.co";
+
+const SUPABASE_ANON_KEY =
+    "sb_publishable_wqFCN6y-w6T7cft5PUCfRw_001kKWLY";
+
+
+const sb =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+
+
+/* ==========================================================
+   NOTIFICATION BADGE
+   ========================================================== */
+
+let notificationBadgeChannel = null;
+
+
+
+async function updateNotificationBadge() {
 
     const badge =
         document.getElementById(
@@ -296,10 +371,63 @@
 
     if (!badge) {
 
+        console.error(
+            "Notification badge element not found."
+        );
+
         return;
 
     }
 
+
+    /* ------------------------------------------
+       CHECK LOGIN SESSION
+       ------------------------------------------ */
+
+    const {
+        data: { session },
+        error: sessionError
+    } = await sb.auth.getSession();
+
+
+    if (sessionError) {
+
+        console.error(
+            "Session error:",
+            sessionError
+        );
+
+        badge.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    if (!session) {
+
+        console.log(
+            "No logged-in Supabase session."
+        );
+
+        badge.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    console.log(
+        "Logged in as:",
+        session.user.email
+    );
+
+
+    /* ------------------------------------------
+       COUNT ACTIVE NOTIFICATIONS
+       ------------------------------------------ */
 
     const {
         count,
@@ -339,27 +467,38 @@
             error
         );
 
+        badge.style.display =
+            "none";
+
         return;
 
     }
 
 
-    if (
+    console.log(
+        "Active notification count:",
         count
-        &&
-        count > 0
-    ) {
+    );
+
+
+    /* ------------------------------------------
+       DISPLAY BADGE
+       ------------------------------------------ */
+
+    if (count > 0) {
 
         badge.textContent =
             count > 99
                 ? "99+"
                 : count;
 
-
         badge.style.display =
             "flex";
 
     } else {
+
+        badge.textContent =
+            "0";
 
         badge.style.display =
             "none";
@@ -367,43 +506,172 @@
     }
 
 }
-    document.addEventListener(
+
+
+
+/* ==========================================================
+   REALTIME LISTENER
+   ========================================================== */
+
+async function startNotificationRealtime() {
+
+    const {
+        data: { session },
+        error
+    } = await sb.auth.getSession();
+
+
+    if (error) {
+
+        console.error(
+            "Realtime session error:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    if (!session) {
+
+        console.log(
+            "Cannot start Realtime because user is not logged in."
+        );
+
+        return;
+
+    }
+
+
+    /* Prevent duplicate subscriptions */
+
+    if (notificationBadgeChannel) {
+
+        await sb.removeChannel(
+            notificationBadgeChannel
+        );
+
+    }
+
+
+    notificationBadgeChannel =
+        sb
+
+        .channel(
+            "main-menu-notifications"
+        )
+
+        .on(
+
+            "postgres_changes",
+
+            {
+
+                event: "*",
+
+                schema: "public",
+
+                table: "notifications",
+
+                filter:
+                    `user_id=eq.${session.user.id}`
+
+            },
+
+            async payload => {
+
+                console.log(
+                    "Notification changed:",
+                    payload
+                );
+
+
+                await updateNotificationBadge();
+
+            }
+
+        )
+
+        .subscribe(
+
+            status => {
+
+                console.log(
+                    "Notification realtime:",
+                    status
+                );
+
+            }
+
+        );
+
+}
+
+
+
+/* ==========================================================
+   INITIALIZE
+   ========================================================== */
+
+async function initializeNotifications() {
+
+    await updateNotificationBadge();
+
+    await startNotificationRealtime();
+
+}
+
+
+
+/* ==========================================================
+   PAGE LOAD
+   ========================================================== */
+
+document.addEventListener(
+
     "DOMContentLoaded",
-    updateNotificationBadge
+
+    initializeNotifications
+
 );
-    const notificationBadgeChannel =
-    sb
 
-    .channel(
-        "main-menu-notifications"
-    )
 
-    .on(
 
-        "postgres_changes",
+/* ==========================================================
+   HANDLE SUPABASE LOGIN SESSION RESTORE
+   ========================================================== */
 
-        {
+sb.auth.onAuthStateChange(
 
-            event: "*",
+    (event, session) => {
 
-            schema: "public",
+        console.log(
+            "Supabase auth:",
+            event
+        );
 
-            table:
-                "notifications"
 
-        },
+        if (session) {
 
-        async () => {
+            setTimeout(
+                async () => {
 
-            await updateNotificationBadge();
+                    await updateNotificationBadge();
+
+                    await startNotificationRealtime();
+
+                },
+                0
+            );
 
         }
 
-    )
+    }
 
-    .subscribe();
-  </script>
+);
 
+</script>
 <footer>
   © 2026 Prins Greenhouses Maintenance App. All Rights Reserved.
 </footer>
