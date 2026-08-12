@@ -152,6 +152,86 @@
     font-size: 12px;
     opacity: 0.6;
   }
+  .notification-menu-button {
+
+    position: relative;
+
+    width: 58px;
+
+    height: 58px;
+
+    border-radius: 16px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-decoration: none;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.18
+        );
+
+    box-shadow:
+        0 5px 15px
+        rgba(
+            0,
+            0,
+            0,
+            0.12
+        );
+
+}
+
+
+.notification-bell {
+
+    font-size: 27px;
+
+}
+
+
+.notification-badge {
+
+    position: absolute;
+
+    right: -5px;
+
+    top: -5px;
+
+    min-width: 23px;
+
+    height: 23px;
+
+    padding: 0 6px;
+
+    border-radius: 20px;
+
+    background: #dc2626;
+
+    color: white;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        2px solid
+        white;
+
+}
 
 
 
@@ -196,8 +276,145 @@
     <span>Equipment Checklists</span>
   </button>
 
+  <a
+    href="notifications.html"
+    class="notification-menu-button"
+    aria-label="Notifications"
+>
+
+    <span class="notification-bell">
+        🔔
+    </span>
+
+    <span
+        id="notificationBadge"
+        class="notification-badge"
+    >
+        0
+    </span>
+
+</a>
+
 </div>
 </main>
+  <script>
+    async function updateNotificationBadge() {
+
+    const badge =
+        document.getElementById(
+            "notificationBadge"
+        );
+
+
+    if (!badge) {
+
+        return;
+
+    }
+
+
+    const {
+        count,
+        error
+    } = await sb
+
+        .from("notifications")
+
+        .select(
+            "id",
+            {
+                count: "exact",
+                head: true
+            }
+        )
+
+        .eq(
+            "is_active",
+            true
+        )
+
+        .eq(
+            "is_cleared",
+            false
+        )
+
+        .is(
+            "resolved_at",
+            null
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Notification badge error:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    if (
+        count
+        &&
+        count > 0
+    ) {
+
+        badge.textContent =
+            count > 99
+                ? "99+"
+                : count;
+
+
+        badge.style.display =
+            "flex";
+
+    } else {
+
+        badge.style.display =
+            "none";
+
+    }
+
+}
+    document.addEventListener(
+    "DOMContentLoaded",
+    updateNotificationBadge
+);
+    const notificationBadgeChannel =
+    sb
+
+    .channel(
+        "main-menu-notifications"
+    )
+
+    .on(
+
+        "postgres_changes",
+
+        {
+
+            event: "*",
+
+            schema: "public",
+
+            table:
+                "notifications"
+
+        },
+
+        async () => {
+
+            await updateNotificationBadge();
+
+        }
+
+    )
+
+    .subscribe();
+  </script>
 
 <footer>
   © 2026 Prins Greenhouses Maintenance App. All Rights Reserved.
