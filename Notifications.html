@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Notifications</title>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<style>
+
+:root {
+
+    --blue-dark: #092B9C;
+
+    --blue: #147BD1;
+
+    --blue-light: #2DA0ED;
+
+    --background: #eef5fb;
+
+    --card: #ffffff;
+
+    --text: #172033;
+
+    --muted: #6b7485;
+
+    --border: #dce5ee;
+
+    --warning: #f59e0b;
+
+    --danger: #dc2626;
+
+    --success: #16a34a;
+
+}
+
+
+* {
+
+    box-sizing: border-box;
+
+}
+
+
+body {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    color: var(--text);
+
+    background:
+        linear-gradient(
+            135deg,
+            #eaf4ff,
+            #f8fbff
+        );
+
+}
+
+
+.topbar {
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--blue-dark),
+            var(--blue-light)
+        );
+
+    color: white;
+
+    padding: 22px;
+
+    box-shadow:
+        0 4px 18px
+        rgba(0,0,0,0.18);
+
+}
+
+
+.topbar-inner {
+
+    width: min(
+        900px,
+        calc(100% - 24px)
+    );
+
+    margin: auto;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+}
+
+
+.back-button {
+
+    width: 44px;
+
+    height: 44px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.18
+        );
+
+    color: white;
+
+    font-size: 24px;
+
+    cursor: pointer;
+
+}
+
+
+.header-text {
+
+    flex: 1;
+
+}
+
+
+.header-title {
+
+    margin: 0;
+
+    font-size: 27px;
+
+    font-weight: 800;
+
+}
+
+
+.header-subtitle {
+
+    margin-top: 3px;
+
+    opacity: .82;
+
+    font-size: 14px;
+
+}
+
+
+.notification-count {
+
+    min-width: 38px;
+
+    height: 38px;
+
+    padding: 0 10px;
+
+    border-radius: 20px;
+
+    background: white;
+
+    color: var(--blue-dark);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-weight: 800;
+
+}
+
+
+.page {
+
+    width: min(
+        900px,
+        calc(100% - 28px)
+    );
+
+    margin:
+        25px auto
+        60px;
+
+}
+
+
+.action-bar {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-bottom: 15px;
+
+}
+
+
+.clear-all-button {
+
+    border: none;
+
+    border-radius: 10px;
+
+    padding: 11px 16px;
+
+    background: #e6edf5;
+
+    color: #25334a;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    display: none;
+
+}
+
+
+.clear-all-button:hover {
+
+    background: #d8e3ef;
+
+}
+
+
+.notification-list {
+
+    display: grid;
+
+    gap: 14px;
+
+}
+
+
+.notification-card {
+
+    position: relative;
+
+    background: white;
+
+    border-radius: 16px;
+
+    padding: 19px;
+
+    box-shadow:
+        0 5px 20px
+        rgba(21,48,80,.09);
+
+    border:
+        1px solid
+        var(--border);
+
+    display: grid;
+
+    grid-template-columns:
+        52px
+        1fr
+        auto;
+
+    gap: 15px;
+
+    align-items: center;
+
+}
+
+
+.notification-icon {
+
+    width: 52px;
+
+    height: 52px;
+
+    border-radius: 14px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 25px;
+
+    background: #fff5dc;
+
+}
+
+
+.notification-card.equipment
+.notification-icon {
+
+    background: #e5f2ff;
+
+}
+
+
+.notification-title {
+
+    margin: 0;
+
+    font-size: 17px;
+
+    font-weight: 800;
+
+}
+
+
+.notification-message {
+
+    margin-top: 5px;
+
+    color: var(--muted);
+
+    font-size: 14px;
+
+    line-height: 1.45;
+
+}
+
+
+.notification-meta {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    margin-top: 10px;
+
+}
+
+
+.meta-pill {
+
+    border-radius: 20px;
+
+    padding: 5px 9px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    background: #eef3f8;
+
+    color: #536177;
+
+}
+
+
+.meta-pill.overdue {
+
+    background: #fff0dc;
+
+    color: #a04c00;
+
+}
+
+
+.clear-button {
+
+    border: none;
+
+    border-radius: 10px;
+
+    padding: 10px 15px;
+
+    background: #eef2f6;
+
+    color: #273548;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+}
+
+
+.clear-button:hover {
+
+    background: #dde6ef;
+
+}
+
+
+.clear-button:disabled {
+
+    opacity: .55;
+
+    cursor: wait;
+
+}
+
+
+.empty-state {
+
+    background: white;
+
+    padding: 55px 20px;
+
+    border-radius: 18px;
+
+    text-align: center;
+
+    border:
+        1px solid
+        var(--border);
+
+    box-shadow:
+        0 5px 20px
+        rgba(21,48,80,.07);
+
+}
+
+
+.empty-icon {
+
+    width: 72px;
+
+    height: 72px;
+
+    margin:
+        0 auto
+        18px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 34px;
+
+    background: #dcfce7;
+
+}
+
+
+.empty-title {
+
+    font-size: 21px;
+
+    font-weight: 800;
+
+}
+
+
+.empty-text {
+
+    color: var(--muted);
+
+    margin-top: 7px;
+
+}
+
+
+.loading {
+
+    text-align: center;
+
+    padding: 50px;
+
+    color: var(--muted);
+
+}
+
+
+.toast {
+
+    position: fixed;
+
+    left: 50%;
+
+    bottom: 30px;
+
+    transform:
+        translateX(-50%)
+        translateY(100px);
+
+    background: #172033;
+
+    color: white;
+
+    padding: 12px 18px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 6px 24px
+        rgba(0,0,0,.25);
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition: .25s;
+
+    z-index: 9999;
+
+}
+
+
+.toast.show {
+
+    opacity: 1;
+
+    transform:
+        translateX(-50%)
+        translateY(0);
+
+}
+
+
+@media (
+    max-width: 650px
+) {
+
+    .notification-card {
+
+        grid-template-columns:
+            48px
+            1fr;
+
+    }
+
+
+    .notification-icon {
+
+        width: 48px;
+
+        height: 48px;
+
+    }
+
+
+    .clear-button {
+
+        grid-column:
+            1 / -1;
+
+        width: 100%;
+
+        margin-top: 4px;
+
+    }
+
+
+    .header-subtitle {
+
+        display: none;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header class="topbar">
+
+    <div class="topbar-inner">
+
+        <button
+            class="back-button"
+            onclick="goBack()"
+            aria-label="Back"
+        >
+            ‹
+        </button>
+
+
+        <div class="header-text">
+
+            <h1 class="header-title">
+                Notifications
+            </h1>
+
+            <div class="header-subtitle">
+                Toolbox & Equipment Inspection Reminders
+            </div>
+
+        </div>
+
+
+        <div
+            class="notification-count"
+            id="headerCount"
+        >
+            0
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<main class="page">
+
+
+    <div class="action-bar">
+
+        <button
+            id="clearAllButton"
+            class="clear-all-button"
+            onclick="clearAllNotifications()"
+        >
+            Clear All
+        </button>
+
+    </div>
+
+
+    <div
+        id="notificationList"
+        class="notification-list"
+    >
+
+        <div class="loading">
+            Loading notifications...
+        </div>
+
+    </div>
+
+
+</main>
+
+
+
+<div
+    class="toast"
+    id="toast"
+></div>
+
+
+
+<script>
+
+/* ==========================================================
+   SUPABASE CONNECTION
+   ========================================================== */
+
+const SUPABASE_URL =
+    "YOUR_SUPABASE_URL";
+
+const SUPABASE_ANON_KEY =
+    "YOUR_SUPABASE_ANON_KEY";
+
+
+const sb =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+
+
+/* ==========================================================
+   STATE
+   ========================================================== */
+
+let currentUser = null;
+
+let notificationChannel = null;
+
+
+
+/* ==========================================================
+   START PAGE
+   ========================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    initializePage
+);
+
+
+
+async function initializePage() {
+
+    const {
+        data: {
+            session
+        },
+        error
+    } = await sb.auth.getSession();
+
+
+    if (error) {
+
+        console.error(
+            "Session error:",
+            error
+        );
+
+    }
+
+
+    if (!session) {
+
+        document.getElementById(
+            "notificationList"
+        ).innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    🔒
+                </div>
+
+                <div class="empty-title">
+                    Login Required
+                </div>
+
+                <div class="empty-text">
+                    Please log into the Toolbox app.
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    currentUser =
+        session.user;
+
+
+    await loadNotifications();
+
+
+    subscribeToNotifications();
+
+}
+
+
+
+/* ==========================================================
+   LOAD ACTIVE NOTIFICATIONS
+   ========================================================== */
+
+async function loadNotifications() {
+
+    const list =
+        document.getElementById(
+            "notificationList"
+        );
+
+
+    const {
+        data,
+        error
+    } = await sb
+
+        .from("notifications")
+
+        .select(`
+            id,
+            category,
+            source_type,
+            source_identifier,
+            machine_code,
+            title,
+            message,
+            severity,
+            due_date,
+            last_completed_date,
+            created_at
+        `)
+
+        .eq(
+            "is_active",
+            true
+        )
+
+        .eq(
+            "is_cleared",
+            false
+        )
+
+        .is(
+            "resolved_at",
+            null
+        )
+
+        .order(
+            "due_date",
+            {
+                ascending: true
+            }
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Notification load error:",
+            error
+        );
+
+
+        list.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    ⚠️
+                </div>
+
+                <div class="empty-title">
+                    Unable to Load Notifications
+                </div>
+
+                <div class="empty-text">
+                    ${escapeHtml(
+                        error.message
+                    )}
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    renderNotifications(
+        data || []
+    );
+
+}
+
+
+
+/* ==========================================================
+   RENDER
+   ========================================================== */
+
+function renderNotifications(
+    notifications
+) {
+
+    const list =
+        document.getElementById(
+            "notificationList"
+        );
+
+
+    const count =
+        notifications.length;
+
+
+    document.getElementById(
+        "headerCount"
+    ).textContent =
+        count > 99
+            ? "99+"
+            : count;
+
+
+    const clearAllButton =
+        document.getElementById(
+            "clearAllButton"
+        );
+
+
+    clearAllButton.style.display =
+        count > 0
+            ? "block"
+            : "none";
+
+
+    if (count === 0) {
+
+        list.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    ✓
+                </div>
+
+                <div class="empty-title">
+                    You're All Caught Up
+                </div>
+
+                <div class="empty-text">
+                    There are currently no
+                    inspection notifications.
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    list.innerHTML =
+        notifications
+
+        .map(
+            notificationCard
+        )
+
+        .join("");
+
+}
+
+
+
+/* ==========================================================
+   NOTIFICATION CARD
+   ========================================================== */
+
+function notificationCard(
+    notification
+) {
+
+    const isEquipment =
+        notification.source_type
+        === "equipment";
+
+
+    const icon =
+        isEquipment
+            ? "🚜"
+            : "🧰";
+
+
+    const className =
+        isEquipment
+            ? "equipment"
+            : "toolbox";
+
+
+    const dueText =
+        getDueText(
+            notification.due_date
+        );
+
+
+    const lastCheck =
+        formatDate(
+            notification
+                .last_completed_date
+        );
+
+
+    return `
+
+        <article
+            class="
+                notification-card
+                ${className}
+            "
+        >
+
+            <div
+                class="notification-icon"
+            >
+                ${icon}
+            </div>
+
+
+            <div>
+
+                <div
+                    class="notification-title"
+                >
+                    ${escapeHtml(
+                        notification.title
+                    )}
+                </div>
+
+
+                <div
+                    class="notification-message"
+                >
+                    ${escapeHtml(
+                        notification.message
+                    )}
+                </div>
+
+
+                <div
+                    class="notification-meta"
+                >
+
+                    <span
+                        class="
+                            meta-pill
+                            overdue
+                        "
+                    >
+                        ${escapeHtml(
+                            dueText
+                        )}
+                    </span>
+
+
+                    ${
+                        lastCheck
+                        ? `
+
+                        <span
+                            class="meta-pill"
+                        >
+                            Last Check:
+                            ${escapeHtml(
+                                lastCheck
+                            )}
+                        </span>
+
+                        `
+                        : ""
+                    }
+
+
+                    ${
+                        notification
+                            .source_identifier
+
+                        ? `
+
+                        <span
+                            class="meta-pill"
+                        >
+                            ${
+                                isEquipment
+                                ? "Machine"
+                                : "Toolbox"
+                            }:
+                            ${escapeHtml(
+                                notification
+                                    .source_identifier
+                            )}
+                        </span>
+
+                        `
+                        : ""
+                    }
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="clear-button"
+                id="
+                    clear-btn-
+                    ${notification.id}
+                "
+                onclick="
+                    clearNotification(
+                        ${notification.id}
+                    )
+                "
+            >
+                Clear
+            </button>
+
+        </article>
+
+    `;
+
+}
+
+
+
+/* ==========================================================
+   CLEAR ONE
+   ========================================================== */
+
+async function clearNotification(
+    notificationId
+) {
+
+    const button =
+        document.getElementById(
+            `clear-btn-${notificationId}`
+        );
+
+
+    if (button) {
+
+        button.disabled = true;
+
+        button.textContent =
+            "Clearing...";
+
+    }
+
+
+    const {
+        data,
+        error
+    } = await sb.rpc(
+        "clear_notification",
+        {
+            p_notification_id:
+                notificationId
+        }
+    );
+
+
+    if (error) {
+
+        console.error(
+            "Clear notification error:",
+            error
+        );
+
+
+        if (button) {
+
+            button.disabled =
+                false;
+
+            button.textContent =
+                "Clear";
+
+        }
+
+
+        showToast(
+            "Unable to clear notification."
+        );
+
+        return;
+
+    }
+
+
+    if (data !== true) {
+
+        showToast(
+            "Notification could not be cleared."
+        );
+
+        return;
+
+    }
+
+
+    showToast(
+        "Notification cleared."
+    );
+
+
+    await loadNotifications();
+
+}
+
+
+
+/* ==========================================================
+   CLEAR ALL
+   ========================================================== */
+
+async function clearAllNotifications() {
+
+    const confirmed =
+        window.confirm(
+            "Clear all current notifications?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const button =
+        document.getElementById(
+            "clearAllButton"
+        );
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "Clearing...";
+
+
+    const {
+        data,
+        error
+    } = await sb.rpc(
+        "clear_all_notifications"
+    );
+
+
+    button.disabled = false;
+
+    button.textContent =
+        "Clear All";
+
+
+    if (error) {
+
+        console.error(
+            "Clear all error:",
+            error
+        );
+
+
+        showToast(
+            "Unable to clear notifications."
+        );
+
+        return;
+
+    }
+
+
+    showToast(
+        `${data || 0} notification${
+            data === 1
+                ? ""
+                : "s"
+        } cleared.`
+    );
+
+
+    await loadNotifications();
+
+}
+
+
+
+/* ==========================================================
+   REALTIME
+   ========================================================== */
+
+function subscribeToNotifications() {
+
+    if (
+        notificationChannel
+    ) {
+
+        sb.removeChannel(
+            notificationChannel
+        );
+
+    }
+
+
+    notificationChannel =
+        sb
+
+        .channel(
+            "toolbox-notifications"
+        )
+
+        .on(
+
+            "postgres_changes",
+
+            {
+
+                event: "*",
+
+                schema: "public",
+
+                table:
+                    "notifications"
+
+            },
+
+            async () => {
+
+                await loadNotifications();
+
+            }
+
+        )
+
+        .subscribe(
+            status => {
+
+                console.log(
+                    "Notification realtime:",
+                    status
+                );
+
+            }
+        );
+
+}
+
+
+
+/* ==========================================================
+   DATE FUNCTIONS
+   ========================================================== */
+
+function formatDate(
+    dateString
+) {
+
+    if (!dateString) {
+
+        return "";
+
+    }
+
+
+    const date =
+        new Date(
+            `${dateString}T12:00:00`
+        );
+
+
+    return new Intl.DateTimeFormat(
+        "en-CA",
+        {
+
+            month: "short",
+
+            day: "numeric",
+
+            year: "numeric"
+
+        }
+    ).format(date);
+
+}
+
+
+
+function getDueText(
+    dueDate
+) {
+
+    if (!dueDate) {
+
+        return "Due";
+
+    }
+
+
+    const due =
+        new Date(
+            `${dueDate}T12:00:00`
+        );
+
+
+    const today =
+        new Date();
+
+
+    today.setHours(
+        12,
+        0,
+        0,
+        0
+    );
+
+
+    const difference =
+        Math.floor(
+            (
+                today - due
+            )
+            /
+            86400000
+        );
+
+
+    if (difference <= 0) {
+
+        return "Due Today";
+
+    }
+
+
+    if (difference === 1) {
+
+        return "1 Day Overdue";
+
+    }
+
+
+    return `${difference} Days Overdue`;
+
+}
+
+
+
+/* ==========================================================
+   HTML SAFETY
+   ========================================================== */
+
+function escapeHtml(
+    value
+) {
+
+    if (
+        value === null
+        ||
+        value === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+
+}
+
+
+
+/* ==========================================================
+   TOAST
+   ========================================================== */
+
+let toastTimeout;
+
+
+function showToast(
+    message
+) {
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+
+    toast.textContent =
+        message;
+
+
+    toast.classList.add(
+        "show"
+    );
+
+
+    clearTimeout(
+        toastTimeout
+    );
+
+
+    toastTimeout =
+        setTimeout(
+            () => {
+
+                toast.classList.remove(
+                    "show"
+                );
+
+            },
+            2500
+        );
+
+}
+
+
+
+/* ==========================================================
+   BACK
+   ========================================================== */
+
+function goBack() {
+
+    if (
+        window.history.length > 1
+    ) {
+
+        window.history.back();
+
+    } else {
+
+        window.location.href =
+            "index.html";
+
+    }
+
+}
+
+</script>
+
+
+</body>
+
+</html>
