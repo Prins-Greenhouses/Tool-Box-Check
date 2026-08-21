@@ -434,6 +434,30 @@
         grid-column: 2;
       }
     }
+    #backToTop {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 58px;
+  height: 58px;
+  border: none;
+  border-radius: 50%;
+  background: #57a4f2;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#backToTop:hover {
+  background: #2d7dd2;
+  transform: translateY(-2px);
+}
   </style>
 </head>
 <body>
@@ -691,6 +715,9 @@
       </section>
     </div>
   </main>
+    <button id="backToTop" onclick="scrollToTop()" title="Back to top">
+  ↑
+</button>
 
   <footer>Tool Checklist Log</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1325,6 +1352,23 @@
     loadChecklistState();
     updateChecklistState();
     renderLog();
+    const backToTopButton = document.getElementById("backToTop");
+
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 300) {
+    backToTopButton.style.display = "flex";
+  } else {
+    backToTopButton.style.display = "none";
+  }
+});
+
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
   </script>
+
 </body>
 </html>
