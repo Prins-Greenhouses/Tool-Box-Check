@@ -202,6 +202,29 @@
       border: 2px solid var(--primary);
     }
 
+    .return-tool-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: var(--good);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(29,143,95,.18);
+    }
+
+    .return-tool-btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .event-returned {
+      background: #def7ea;
+      color: #13734c;
+      border-color: rgba(29,143,95,.25);
+    }
+
     .status {
       margin-top: 18px;
       min-height: 22px;
@@ -385,11 +408,6 @@
           </div>
 
           <div class="field">
-            <label for="dateReturned">Date Returned</label>
-            <input id="dateReturned" type="date">
-          </div>
-
-          <div class="field">
             <label for="condition">Condition</label>
             <select id="condition" name="condition">
               <option value="">Select condition</option>
@@ -451,19 +469,29 @@
 
   <footer>Borrowed Tool Kit Tracking</footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const STORAGE_KEY = "borrowedToolLog";
+    // ==========================================================
+    // SUPABASE SETTINGS
+    // Replace these two values with your own Supabase project info.
+    // Project URL: Supabase > Project Settings > Data API
+    // Anon/public key: Supabase > Project Settings > API Keys
+    // ==========================================================
+    const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
+    const TABLE_NAME = "borrowed_tool_log";
 
-    function getEntries() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-      } catch {
-        return [];
-      }
-    }
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function saveEntries(entries) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    let allEntries = [];
+
+    function getLocalToday() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
     }
 
     function setStatus(message, isError = false) {
@@ -476,10 +504,8 @@
       document.getElementById("serialNumber").value = "";
       document.getElementById("crewMember").value = "";
       document.getElementById("project").value = "";
-      document.getElementById("dateLoaned").value = "";
-      document.getElementById("dateReturned").value = "";
+      document.getElementById("dateLoaned").value = getLocalToday();
       document.getElementById("condition").value = "";
-      setStatus("Form cleared.");
     }
 
     function clearFilters() {
@@ -489,12 +515,11 @@
       setStatus("Filters cleared.");
     }
 
-    function addEntry() {
+    async function addEntry() {
       const serialNumber = document.getElementById("serialNumber").value.trim();
       const crewMember = document.getElementById("crewMember").value.trim();
       const project = document.getElementById("project").value.trim();
       const dateLoaned = document.getElementById("dateLoaned").value;
-      const dateReturned = document.getElementById("dateReturned").value;
       const condition = document.getElementById("condition").value;
 
       if (!serialNumber || !crewMember || !project || !dateLoaned || !condition) {
@@ -502,34 +527,115 @@
         return;
       }
 
-      const entries = getEntries();
+      setStatus("Saving borrowed tool entry...");
 
-      entries.unshift({
-        serialNumber,
-        crewMember,
-        project,
-        dateLoaned,
-        dateReturned,
-        condition,
-        createdAt: new Date().toISOString()
-      });
+      const { error } = await supabaseClient
+        .from(TABLE_NAME)
+        .insert({
+          event_type: "BORROWED",
+          serial_number: serialNumber,
+          crew_member: crewMember,
+          project,
+          event_date: dateLoaned,
+          condition
+        });
 
-      saveEntries(entries);
-      renderLog();
+      if (error) {
+        console.error(error);
+        setStatus(`Supabase error: ${error.message}`, true);
+        return;
+      }
+
       clearForm();
-      setStatus("Entry added to log.");
+      await loadLog();
+      setStatus("Borrowed tool entry added to Supabase.");
+    }
+
+    async function returnTool(loanId, button) {
+      const loan = allEntries.find(entry => String(entry.id) === String(loanId));
+
+      if (!loan) {
+        setStatus("Could not find the original loan entry.", true);
+        return;
+      }
+
+      const alreadyReturned = allEntries.some(
+        entry =>
+          entry.event_type === "RETURNED" &&
+          String(entry.loan_id) === String(loanId)
+      );
+
+      if (alreadyReturned) {
+        setStatus("This loan has already been returned.", true);
+        await loadLog();
+        return;
+      }
+
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Returning...";
+      }
+
+      const returnDate = getLocalToday();
+
+      const { error } = await supabaseClient
+        .from(TABLE_NAME)
+        .insert({
+          loan_id: loan.id,
+          event_type: "RETURNED",
+          serial_number: loan.serial_number,
+          crew_member: loan.crew_member,
+          project: loan.project,
+          event_date: returnDate,
+          condition: null
+        });
+
+      if (error) {
+        console.error(error);
+        setStatus(`Supabase error: ${error.message}`, true);
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Return Tool";
+        }
+        return;
+      }
+
+      await loadLog();
+      setStatus(`${loan.serial_number} returned on ${returnDate}.`);
+    }
+
+    async function loadLog() {
+      const logList = document.getElementById("logList");
+      logList.innerHTML = `<div class="empty">Loading Supabase log...</div>`;
+
+      const { data, error } = await supabaseClient
+        .from(TABLE_NAME)
+        .select("*")
+        .order("event_date", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        allEntries = [];
+        logList.innerHTML = `<div class="empty">Could not load the Supabase log.</div>`;
+        document.getElementById("logCount").textContent = "0 entries shown";
+        setStatus(`Supabase error: ${error.message}`, true);
+        return;
+      }
+
+      allEntries = data || [];
+      renderLog();
     }
 
     function getFilteredEntries() {
-      const entries = getEntries();
       const fromDate = document.getElementById("filterDateFrom").value;
       const toDate = document.getElementById("filterDateTo").value;
 
-      return entries.filter(entry => {
-        const loanDate = entry.dateLoaned || "";
+      return allEntries.filter(entry => {
+        const eventDate = entry.event_date || "";
 
-        if (fromDate && loanDate < fromDate) return false;
-        if (toDate && loanDate > toDate) return false;
+        if (fromDate && eventDate < fromDate) return false;
+        if (toDate && eventDate > toDate) return false;
 
         return true;
       });
@@ -539,49 +645,75 @@
       const logList = document.getElementById("logList");
       const logCount = document.getElementById("logCount");
       const filteredEntries = getFilteredEntries();
-      const totalEntries = getEntries().length;
+      const returnedLoanIds = new Set(
+        allEntries
+          .filter(entry => entry.event_type === "RETURNED" && entry.loan_id != null)
+          .map(entry => String(entry.loan_id))
+      );
 
-      logCount.textContent = `${filteredEntries.length} entr${filteredEntries.length === 1 ? "y" : "ies"} shown of ${totalEntries}`;
+      logCount.textContent =
+        `${filteredEntries.length} entr${filteredEntries.length === 1 ? "y" : "ies"} shown of ${allEntries.length}`;
 
       if (!filteredEntries.length) {
         logList.innerHTML = `<div class="empty">No log entries match the selected date range.</div>`;
         return;
       }
 
-      logList.innerHTML = filteredEntries.map(entry => `
-        <div class="log-item">
-          <div class="log-item-top">
-            <div class="serial">${escapeHtml(entry.serialNumber)}</div>
-            <div class="pill">${escapeHtml(entry.condition)}</div>
-          </div>
+      logList.innerHTML = filteredEntries.map(entry => {
+        const isBorrowed = entry.event_type === "BORROWED";
+        const isReturned = entry.event_type === "RETURNED";
+        const openLoan = isBorrowed && !returnedLoanIds.has(String(entry.id));
 
-          <div class="meta"><strong>Crew Member:</strong> ${escapeHtml(entry.crewMember)}</div>
-          <div class="meta"><strong>Project:</strong> ${escapeHtml(entry.project)}</div>
-          <div class="meta"><strong>Date Loaned:</strong> ${escapeHtml(entry.dateLoaned)}</div>
-          <div class="meta"><strong>Date Returned:</strong> ${escapeHtml(entry.dateReturned || "-")}</div>
-        </div>
-      `).join("");
+        const eventPillClass = isReturned ? "pill event-returned" : "pill";
+        const eventLabel = isReturned ? "RETURNED" : "BORROWED";
+
+        const returnButton = openLoan
+          ? `<button class="return-tool-btn" onclick="returnTool('${entry.id}', this)">Return Tool</button>`
+          : "";
+
+        return `
+          <div class="log-item">
+            <div class="log-item-top">
+              <div>
+                <div class="serial">${escapeHtml(entry.serial_number)}</div>
+                <div class="${eventPillClass}">${eventLabel}</div>
+                ${entry.condition ? `<div class="pill">${escapeHtml(entry.condition)}</div>` : ""}
+              </div>
+              ${returnButton}
+            </div>
+
+            <div class="meta"><strong>Crew Member:</strong> ${escapeHtml(entry.crew_member || "-")}</div>
+            <div class="meta"><strong>Project:</strong> ${escapeHtml(entry.project || "-")}</div>
+            <div class="meta"><strong>${isReturned ? "Date Returned" : "Date Loaned"}:</strong> ${escapeHtml(entry.event_date || "-")}</div>
+            ${isReturned && entry.loan_id ? `<div class="meta"><strong>Original Loan ID:</strong> ${escapeHtml(entry.loan_id)}</div>` : ""}
+          </div>
+        `;
+      }).join("");
     }
 
     function buildCSV(entries) {
       const headers = [
+        "ID",
+        "Original Loan ID",
+        "Event Type",
         "Tool Kit Serial Number",
         "Crew Member Name",
         "Project",
-        "Date Loaned Out",
-        "Date Returned",
+        "Event Date",
         "Condition",
         "Created At"
       ];
 
       const rows = entries.map(entry => [
-        entry.serialNumber,
-        entry.crewMember,
-        entry.project,
-        entry.dateLoaned,
-        entry.dateReturned || "",
-        entry.condition,
-        entry.createdAt || ""
+        entry.id,
+        entry.loan_id || "",
+        entry.event_type,
+        entry.serial_number,
+        entry.crew_member || "",
+        entry.project || "",
+        entry.event_date,
+        entry.condition || "",
+        entry.created_at || ""
       ]);
 
       return [headers, ...rows]
@@ -600,7 +732,7 @@
       }
 
       const csv = buildCSV(filteredEntries);
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getLocalToday();
       const filename = `borrowed-tools-log-filtered-${today}.csv`;
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const file = new File([blob], filename, { type: "text/csv" });
@@ -630,7 +762,7 @@
       const fileData = getCSVFile();
       if (!fileData) return;
 
-      const { file, filename, csv } = fileData;
+      const { file, csv } = fileData;
 
       try {
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -645,7 +777,7 @@
 
         const subject = encodeURIComponent("Borrowed Tools Filtered Log CSV");
         const body = encodeURIComponent(
-          "Attached below is the filtered borrowed tools log data.\n\n" + csv
+          "Filtered borrowed tools log data:\n\n" + csv
         );
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
         setStatus("Opened email app with filtered CSV data.");
@@ -665,7 +797,9 @@
         .replace(/'/g, "&#39;");
     }
 
-    renderLog();
+    document.getElementById("dateLoaned").value = getLocalToday();
+    loadLog();
   </script>
 </body>
 </html>
+
