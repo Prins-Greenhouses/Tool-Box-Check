@@ -705,6 +705,20 @@
   );
 </script>
   <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const entryDate = document.getElementById("entryDate");
+
+    const today = new Date();
+    const localDate = [
+      today.getFullYear(),
+      String(today.getMonth() + 1).padStart(2, "0"),
+      String(today.getDate()).padStart(2, "0")
+    ].join("-");
+
+    entryDate.value = localDate;
+  });
+</script>
+  <script>
     const CHECKLIST_STATE_KEY = 'toolChecklistState';
     const LOG_STORAGE_KEY = 'toolChecklistLog';
 
