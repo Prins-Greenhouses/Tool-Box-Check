@@ -514,7 +514,7 @@
               <option value="1010">PG-1010</option>
               <option value="1011">PG-1011</option>
               <option value="1012">PG-1012</option>
-              <option value="1012">PG-1013</option>
+              <option value="1013">PG-1013</option>
             </select>
           </div>
 
@@ -840,9 +840,29 @@
     }
 
     function autoFillCrew() {
-      const toolbox = serialNumberEl.value;
-      crewMemberEl.value = toolboxMap[toolbox] || '';
-    }
+  const toolbox = serialNumberEl.value;
+
+  // Auto-fill crew member
+  crewMemberEl.value = toolboxMap[toolbox] || '';
+
+  // If an actual toolbox was selected,
+  // reset the checklist to a COMPLETE toolbox
+  if (toolbox) {
+    getChecklistItems().forEach(item => {
+      const checkbox = item.querySelector('input[type="checkbox"]');
+      const qty = item.querySelector('.qty');
+
+      // Check every item
+      checkbox.checked = true;
+
+      // Restore the original required quantity from the HTML
+      qty.value = qty.defaultValue || 1;
+    });
+
+    updateChecklistState();
+    showStatus('Tool box loaded - checklist set to complete.');
+  }
+}
 
     function clearChecklist() {
       getChecklistItems().forEach(item => {
