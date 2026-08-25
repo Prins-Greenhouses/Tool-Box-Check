@@ -864,14 +864,13 @@
     </label>
 
   </div>
-          <div class="field" style="margin-top:20px;">
+<div class="field" style="margin-top:24px;">
   <label for="neededText">Needed</label>
 
   <textarea
     id="neededText"
     rows="4"
-    placeholder="Select an inspection above, then enter tools, parts, or supplies needed..."
-    disabled
+    placeholder="Enter any tools, parts, supplies, or replacements needed..."
     style="
       width:100%;
       border:1px solid var(--line);
@@ -884,16 +883,6 @@
       outline:none;
     "
   ></textarea>
-
-  <div
-    id="neededStatus"
-    style="
-      margin-top:6px;
-      font-size:13px;
-      font-weight:700;
-      min-height:18px;
-    "
-  ></div>
 </div>
 </div>
 
@@ -971,14 +960,12 @@
 
   const CHECKLIST_STATE_KEY = 'vanToolChecklistState_v1';
 
-  // Running inspection log is loaded from Supabase.
+  // =========================================================
+  // SUPABASE LOG DATA
+  // =========================================================
+
+  // Running inspection log is loaded directly from Supabase.
   let supabaseLog = [];
-
-  // Currently selected inspection for the Needed editor
-  let selectedLogId = null;
-
-  // Used to delay saving while the user is typing
-  let neededSaveTimer = null;
 
 
   // =========================================================
@@ -989,22 +976,19 @@
   const crewMemberEl = document.getElementById('crewMember');
   const entryDateEl = document.getElementById('entryDate');
 
+  const neededTextEl = document.getElementById('neededText');
+
   const logListEl = document.getElementById('logList');
   const logCountEl = document.getElementById('logCount');
-
   const statusMsgEl = document.getElementById('statusMsg');
 
   const filterDateFromEl = document.getElementById('filterDateFrom');
   const filterDateToEl = document.getElementById('filterDateTo');
   const filterToolBoxEl = document.getElementById('filterToolBox');
 
-  // Needed editor
-  const neededTextEl = document.getElementById('neededText');
-  const neededStatusEl = document.getElementById('neededStatus');
-
 
   // =========================================================
-  // VAN / CREW MAP
+  // VAN / CREW MEMBER MAP
   // =========================================================
 
   const toolboxMap = {
@@ -1025,7 +1009,7 @@
 
 
   // =========================================================
-  // CHECKLIST
+  // CHECKLIST FUNCTIONS
   // =========================================================
 
   function getChecklistItems() {
@@ -1039,10 +1023,16 @@
 
   function sanitizeQtyInput(input) {
 
-    let value = parseInt(input.value, 10);
+    let value =
+      parseInt(input.value, 10);
 
-    if (isNaN(value) || value < 0) {
+    if (
+      isNaN(value) ||
+      value < 0
+    ) {
+
       value = 0;
+
     }
 
     input.value = value;
@@ -1079,11 +1069,15 @@
         qtyValue > 0
       ) {
 
-        item.classList.add('complete');
+        item.classList.add(
+          'complete'
+        );
 
       } else {
 
-        item.classList.add('missing');
+        item.classList.add(
+          'missing'
+        );
 
       }
 
@@ -1151,20 +1145,25 @@
 
   function clearChecklist() {
 
-    getChecklistItems()
-      .forEach(item => {
+    getChecklistItems().forEach(item => {
 
-        item
-          .querySelector(
-            'input[type="checkbox"]'
-          )
-          .checked = false;
+      const checkbox =
+        item.querySelector(
+          'input[type="checkbox"]'
+        );
 
-        item
-          .querySelector('.qty')
-          .value = 1;
+      const qty =
+        item.querySelector('.qty');
 
-      });
+
+      checkbox.checked = false;
+
+
+      // Restore quantity to original HTML value
+      qty.value =
+        qty.defaultValue || 1;
+
+    });
 
 
     serialNumberEl.value = '';
@@ -1177,7 +1176,22 @@
         .split('T')[0];
 
 
+    // Clear Needed field
+    if (neededTextEl) {
+
+      neededTextEl.value = '';
+
+    }
+
+
     updateChecklistState();
+
+
+    // Clear saved unfinished checklist
+    localStorage.removeItem(
+      CHECKLIST_STATE_KEY
+    );
+
 
     showStatus(
       'Checklist cleared.'
@@ -1187,39 +1201,34 @@
 
 
   // =========================================================
-  // CHECK ALL ITEMS
+  // TOOL KIT COMPLETE
   // =========================================================
 
   function checkAllItems() {
 
-    getChecklistItems()
-      .forEach(item => {
+    getChecklistItems().forEach(item => {
 
-        const checkbox =
-          item.querySelector(
-            'input[type="checkbox"]'
-          );
+      const checkbox =
+        item.querySelector(
+          'input[type="checkbox"]'
+        );
 
-        const qty =
-          item.querySelector('.qty');
-
-
-        checkbox.checked = true;
+      const qty =
+        item.querySelector('.qty');
 
 
-        if (
-          !qty.value ||
-          Number(qty.value) < 1
-        ) {
+      checkbox.checked = true;
 
-          qty.value = 1;
 
-        }
+      // Restore original expected quantity
+      qty.value =
+        qty.defaultValue || 1;
 
-      });
+    });
 
 
     updateChecklistState();
+
 
     showStatus(
       'All items checked.'
@@ -1229,7 +1238,7 @@
 
 
   // =========================================================
-  // SAVE CURRENT CHECKLIST STATE LOCALLY
+  // SAVE UNFINISHED CHECKLIST LOCALLY
   // =========================================================
 
   function saveChecklistState() {
@@ -1245,7 +1254,13 @@
       entryDate:
         entryDateEl.value,
 
+      needed:
+        neededTextEl
+          ? neededTextEl.value
+          : '',
+
       items:
+
         getChecklistItems()
           .map(item => {
 
@@ -1255,7 +1270,10 @@
               );
 
             const qty =
-              item.querySelector('.qty');
+              item.querySelector(
+                '.qty'
+              );
+
 
             return {
 
@@ -1276,15 +1294,18 @@
 
 
     localStorage.setItem(
+
       CHECKLIST_STATE_KEY,
+
       JSON.stringify(state)
+
     );
 
   }
 
 
   // =========================================================
-  // LOAD CURRENT CHECKLIST STATE
+  // LOAD UNFINISHED CHECKLIST
   // =========================================================
 
   function loadChecklistState() {
@@ -1313,10 +1334,20 @@
         state.crewMember || '';
 
       entryDateEl.value =
+
         state.entryDate ||
+
         new Date()
           .toISOString()
           .split('T')[0];
+
+
+      if (neededTextEl) {
+
+        neededTextEl.value =
+          state.needed || '';
+
+      }
 
 
       const map =
@@ -1324,15 +1355,17 @@
 
           (state.items || [])
             .map(item => [
+
               item.name,
               item
+
             ])
 
         );
 
 
-      getChecklistItems()
-        .forEach(item => {
+      getChecklistItems().forEach(
+        item => {
 
           const checkbox =
             item.querySelector(
@@ -1340,7 +1373,9 @@
             );
 
           const qty =
-            item.querySelector('.qty');
+            item.querySelector(
+              '.qty'
+            );
 
           const saved =
             map.get(
@@ -1353,21 +1388,30 @@
             checkbox.checked =
               !!saved.checked;
 
+
             qty.value =
               Number.isFinite(
                 saved.qty
               )
                 ? saved.qty
-                : 1;
+                : qty.defaultValue || 1;
 
           }
 
-        });
+        }
+      );
 
 
       updateChecklistState();
 
-    } catch {
+
+    } catch (error) {
+
+      console.error(
+        'Checklist state load error:',
+        error
+      );
+
 
       showStatus(
         'Saved checklist could not be loaded.',
@@ -1380,7 +1424,7 @@
 
 
   // =========================================================
-  // SUPABASE LOG
+  // GET CURRENT LOG
   // =========================================================
 
   function getLog() {
@@ -1389,6 +1433,10 @@
 
   }
 
+
+  // =========================================================
+  // LOAD LOG FROM SUPABASE
+  // =========================================================
 
   async function loadSupabaseLog(
     showLoading = true
@@ -1399,8 +1447,12 @@
       logCountEl.textContent =
         'Loading entries...';
 
+
       logListEl.innerHTML =
-        '<div class="empty">Loading inspection log from Supabase...</div>';
+
+        '<div class="empty">' +
+        'Loading inspection log from Supabase...' +
+        '</div>';
 
     }
 
@@ -1410,28 +1462,29 @@
       const {
         data,
         error
-      } = await supabaseClient
+      } =
+        await supabaseClient
 
-        .from(
-          'van_tool_kit_logs'
-        )
+          .from(
+            'van_tool_kit_logs'
+          )
 
-        .select(`
-          id,
-          serial_number,
-          crew_member,
-          entry_date,
-          missing_items,
-          needed,
-          created_at
-        `)
+          .select(`
+            id,
+            serial_number,
+            crew_member,
+            entry_date,
+            missing_items,
+            needed,
+            created_at
+          `)
 
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        );
+          .order(
+            'created_at',
+            {
+              ascending: false
+            }
+          );
 
 
       if (error) {
@@ -1441,19 +1494,30 @@
           error
         );
 
+
         supabaseLog = [];
+
 
         logCountEl.textContent =
           '0 entries shown';
 
+
         logListEl.innerHTML =
-          '<div class="empty">Could not load the inspection log from Supabase.</div>';
+
+          '<div class="empty">' +
+          'Could not load the inspection log from Supabase.' +
+          '</div>';
+
 
         showStatus(
+
           'Could not load Supabase log: ' +
           error.message,
+
           true
+
         );
+
 
         return;
 
@@ -1461,6 +1525,7 @@
 
 
       supabaseLog =
+
         (data || [])
           .map(row => ({
 
@@ -1477,10 +1542,13 @@
               row.entry_date || '',
 
             missingItems:
+
               Array.isArray(
                 row.missing_items
               )
+
                 ? row.missing_items
+
                 : [],
 
             needed:
@@ -1490,21 +1558,6 @@
               row.created_at || ''
 
           }));
-
-
-      // If selected inspection was deleted / no longer exists
-      if (
-        selectedLogId !== null &&
-        !supabaseLog.some(
-          entry =>
-            Number(entry.id) ===
-            Number(selectedLogId)
-        )
-      ) {
-
-        clearNeededSelection();
-
-      }
 
 
       renderLog();
@@ -1520,11 +1573,16 @@
 
       supabaseLog = [];
 
+
       logCountEl.textContent =
         '0 entries shown';
 
+
       logListEl.innerHTML =
-        '<div class="empty">Could not connect to Supabase to load the inspection log.</div>';
+
+        '<div class="empty">' +
+        'Could not connect to Supabase to load the inspection log.' +
+        '</div>';
 
 
       showStatus(
@@ -1538,7 +1596,7 @@
 
 
   // =========================================================
-  // COLLECT CHECKLIST FORM DATA
+  // COLLECT CURRENT INSPECTION
   // =========================================================
 
   function collectFormData() {
@@ -1552,8 +1610,14 @@
     const entryDate =
       entryDateEl.value;
 
+    const needed =
+      neededTextEl
+        ? neededTextEl.value.trim()
+        : '';
+
 
     const missingItems =
+
       getChecklistItems()
 
         .map(item => {
@@ -1564,7 +1628,9 @@
             );
 
           const qty =
-            item.querySelector('.qty');
+            item.querySelector(
+              '.qty'
+            );
 
 
           return {
@@ -1584,7 +1650,9 @@
 
         .filter(
           item =>
+
             !item.checked ||
+
             item.qty === 0
         )
 
@@ -1604,7 +1672,8 @@
       serialNumber,
       crewMember,
       entryDate,
-      missingItems
+      missingItems,
+      needed
 
     };
 
@@ -1612,7 +1681,7 @@
 
 
   // =========================================================
-  // ADD INSPECTION TO SUPABASE
+  // ADD ENTRY TO SUPABASE
   // =========================================================
 
   async function addEntry() {
@@ -1622,10 +1691,15 @@
       serialNumber,
       crewMember,
       entryDate,
-      missingItems
+      missingItems,
+      needed
 
     } = collectFormData();
 
+
+    // ---------------------------------------------------------
+    // VALIDATE
+    // ---------------------------------------------------------
 
     if (
       !serialNumber ||
@@ -1634,8 +1708,11 @@
     ) {
 
       showStatus(
+
         'Please fill in van FA number, crew member name, and date.',
+
         true
+
       );
 
       return;
@@ -1649,6 +1726,10 @@
 
 
     try {
+
+      // -------------------------------------------------------
+      // GET LOGGED IN USER
+      // -------------------------------------------------------
 
       const {
 
@@ -1671,10 +1752,15 @@
           userError
         );
 
+
         showStatus(
+
           'You must be logged in to save an inspection.',
+
           true
+
         );
+
 
         return;
 
@@ -1684,6 +1770,10 @@
       const loggedInUser =
         userData.user;
 
+
+      // -------------------------------------------------------
+      // INSERT INSPECTION
+      // -------------------------------------------------------
 
       const {
         error: insertError
@@ -1712,10 +1802,14 @@
               missingItems,
 
             needed:
-              ''
+              needed
 
           });
 
+
+      // -------------------------------------------------------
+      // INSERT ERROR
+      // -------------------------------------------------------
 
       if (insertError) {
 
@@ -1724,21 +1818,30 @@
           insertError
         );
 
+
         showStatus(
+
           'Could not save inspection: ' +
           insertError.message,
+
           true
+
         );
+
 
         return;
 
       }
 
 
-      // Reload running log from Supabase
+      // -------------------------------------------------------
+      // REFRESH LOG
+      // -------------------------------------------------------
+
       await loadSupabaseLog(false);
 
 
+      // Save the current form state
       saveChecklistState();
 
 
@@ -1753,6 +1856,7 @@
         'Unexpected Supabase error:',
         error
       );
+
 
       showStatus(
         'Could not connect to Supabase.',
@@ -1811,6 +1915,7 @@
     const log =
       getLog();
 
+
     const filterDateFrom =
       filterDateFromEl.value;
 
@@ -1818,6 +1923,7 @@
       filterDateToEl.value;
 
     const filterToolBox =
+
       filterToolBoxEl
         .value
         .trim()
@@ -1832,13 +1938,19 @@
 
 
         const matchesFrom =
+
           !filterDateFrom ||
-          entryDate >= filterDateFrom;
+
+          entryDate >=
+          filterDateFrom;
 
 
         const matchesTo =
+
           !filterDateTo ||
-          entryDate <= filterDateTo;
+
+          entryDate <=
+          filterDateTo;
 
 
         const matchesToolBox =
@@ -1848,16 +1960,20 @@
           String(
             entry.serialNumber || ''
           )
+
             .trim()
+
             .toLowerCase()
-            ===
-            filterToolBox;
+
+          === filterToolBox;
 
 
         return (
+
           matchesFrom &&
           matchesTo &&
           matchesToolBox
+
         );
 
       }
@@ -1865,6 +1981,10 @@
 
   }
 
+
+  // =========================================================
+  // POPULATE VAN FILTER
+  // =========================================================
 
   function populateToolBoxFilter(
     selectedValue = ''
@@ -1874,35 +1994,40 @@
       getLog();
 
 
-    const serials =
-      [
-        ...new Set(
+    const serials = [
 
-          log
+      ...new Set(
 
-            .map(
-              entry =>
-                String(
-                  entry.serialNumber || ''
-                ).trim()
-            )
+        log
 
-            .filter(Boolean)
+          .map(
+            entry =>
+              String(
+                entry.serialNumber || ''
+              ).trim()
+          )
 
-        )
-      ]
+          .filter(Boolean)
 
-        .sort(
-          (a, b) =>
-            a.localeCompare(
-              b,
-              undefined,
-              {
-                numeric: true,
-                sensitivity: 'base'
-              }
-            )
-        );
+      )
+
+    ]
+
+      .sort(
+        (a, b) =>
+
+          a.localeCompare(
+
+            b,
+            undefined,
+
+            {
+              numeric: true,
+              sensitivity: 'base'
+            }
+
+          )
+      );
 
 
     filterToolBoxEl.innerHTML =
@@ -1910,10 +2035,16 @@
       '<option value="">All Vans</option>' +
 
       serials
+
         .map(
           serial =>
-            `<option value="${escapeHtml(serial)}">${escapeHtml(serial)}</option>`
+
+            `<option value="${escapeHtml(serial)}">` +
+            `${escapeHtml(serial)}` +
+            `</option>`
+
         )
+
         .join('');
 
 
@@ -1933,7 +2064,7 @@
 
 
   // =========================================================
-  // RENDER LOG
+  // RENDER INSPECTION LOG
   // =========================================================
 
   function renderLog() {
@@ -1963,7 +2094,11 @@
     if (!filteredLog.length) {
 
       logListEl.innerHTML =
-        '<div class="empty">No entries match the selected filters.</div>';
+
+        '<div class="empty">' +
+        'No entries match the selected filters.' +
+        '</div>';
+
 
       return;
 
@@ -1973,6 +2108,7 @@
     logListEl.innerHTML =
 
       filteredLog
+
         .map(entry => {
 
 
@@ -1982,16 +2118,25 @@
 
               ? entry.missingItems
 
-                  .map(
-                    item =>
+                  .map(item =>
 
-                      `<span class="pill">${
-                        escapeHtml(item.name)
-                      }${
-                        item.qty > 1
-                          ? ` × ${item.qty}`
-                          : ''
-                      }</span>`
+                    `<span class="pill">` +
+
+                    `${escapeHtml(
+                      item.name
+                    )}` +
+
+                    `${
+
+                      item.qty > 1
+
+                        ? ` × ${item.qty}`
+
+                        : ''
+
+                    }` +
+
+                    `</span>`
 
                   )
 
@@ -1999,10 +2144,12 @@
 
               :
 
-              '<div class="meta"><strong>Complete</strong></div>';
+                '<div class="meta">' +
+                '<strong>Complete</strong>' +
+                '</div>';
 
 
-          const neededDisplay =
+          const needed =
 
             entry.needed
 
@@ -2010,42 +2157,29 @@
                   entry.needed
                 )
 
-              : 'Nothing currently listed';
-
-
-          const isSelected =
-
-            Number(entry.id) ===
-            Number(selectedLogId);
+              : 'None';
 
 
           return `
 
-            <div
-              class="log-item"
-              data-log-id="${escapeHtml(entry.id)}"
-              style="
-                cursor:pointer;
-                ${
-                  isSelected
-                    ? 'border:2px solid var(--primary);'
-                    : ''
-                }
-              "
-            >
+            <div class="log-item">
 
               <div class="log-item-top">
 
                 <div class="serial">
+
                   ${escapeHtml(
                     entry.serialNumber
                   )}
+
                 </div>
 
                 <span class="pill">
+
                   ${escapeHtml(
                     entry.entryDate
                   )}
+
                 </span>
 
               </div>
@@ -2078,7 +2212,7 @@
               </div>
 
               <div class="meta">
-                ${neededDisplay}
+                ${needed}
               </div>
 
             </div>
@@ -2088,224 +2222,6 @@
         })
 
         .join('');
-
-  }
-
-
-  // =========================================================
-  // SELECT LOG ENTRY FOR "NEEDED" EDITING
-  // =========================================================
-
-  function selectLogEntry(id) {
-
-    const entry =
-      supabaseLog.find(
-        item =>
-          Number(item.id) ===
-          Number(id)
-      );
-
-
-    if (!entry) {
-      return;
-    }
-
-
-    selectedLogId =
-      entry.id;
-
-
-    if (neededTextEl) {
-
-      neededTextEl.disabled =
-        false;
-
-      neededTextEl.value =
-        entry.needed || '';
-
-    }
-
-
-    if (neededStatusEl) {
-
-      neededStatusEl.textContent =
-
-        `Editing ${entry.serialNumber} - ${entry.entryDate}`;
-
-      neededStatusEl.style.color =
-        'var(--primary-dark)';
-
-    }
-
-
-    renderLog();
-
-  }
-
-
-  function clearNeededSelection() {
-
-    selectedLogId = null;
-
-
-    if (neededTextEl) {
-
-      neededTextEl.value = '';
-
-      neededTextEl.disabled =
-        true;
-
-    }
-
-
-    if (neededStatusEl) {
-
-      neededStatusEl.textContent = '';
-
-    }
-
-  }
-
-
-  // =========================================================
-  // SAVE "NEEDED" TEXT TO SUPABASE
-  // =========================================================
-
-  async function saveNeededText(
-    logId,
-    textToSave
-  ) {
-
-    if (!logId) {
-      return;
-    }
-
-
-    if (
-      neededStatusEl &&
-      Number(selectedLogId) ===
-      Number(logId)
-    ) {
-
-      neededStatusEl.textContent =
-        'Saving...';
-
-      neededStatusEl.style.color =
-        'var(--primary-dark)';
-
-    }
-
-
-    try {
-
-      const {
-        error
-      } =
-        await supabaseClient
-
-          .from(
-            'van_tool_kit_logs'
-          )
-
-          .update({
-
-            needed:
-              textToSave.trim()
-
-          })
-
-          .eq(
-            'id',
-            logId
-          );
-
-
-      if (error) {
-
-        console.error(
-          'Needed update error:',
-          error
-        );
-
-
-        if (
-          neededStatusEl &&
-          Number(selectedLogId) ===
-          Number(logId)
-        ) {
-
-          neededStatusEl.textContent =
-            'Could not save Needed.';
-
-          neededStatusEl.style.color =
-            'var(--danger)';
-
-        }
-
-
-        return;
-
-      }
-
-
-      // Update local Supabase data copy
-      const entry =
-        supabaseLog.find(
-          item =>
-            Number(item.id) ===
-            Number(logId)
-        );
-
-
-      if (entry) {
-
-        entry.needed =
-          textToSave.trim();
-
-      }
-
-
-      renderLog();
-
-
-      if (
-        neededStatusEl &&
-        Number(selectedLogId) ===
-        Number(logId)
-      ) {
-
-        neededStatusEl.textContent =
-          '✓ Saved';
-
-        neededStatusEl.style.color =
-          'var(--good)';
-
-      }
-
-
-    } catch (error) {
-
-      console.error(
-        'Unexpected Needed save error:',
-        error
-      );
-
-
-      if (
-        neededStatusEl &&
-        Number(selectedLogId) ===
-        Number(logId)
-      ) {
-
-        neededStatusEl.textContent =
-          'Could not connect to Supabase.';
-
-        neededStatusEl.style.color =
-          'var(--danger)';
-
-      }
-
-    }
 
   }
 
@@ -2334,7 +2250,7 @@
 
 
   // =========================================================
-  // CSV
+  // CSV HELPERS
   // =========================================================
 
   function csvEscape(value) {
@@ -2362,56 +2278,69 @@
     const headers = [
 
       'Van FA Number',
+
       'Crew Member Name',
+
       'Date',
+
       'Missing Items / Status',
+
       'Needed',
+
       'Created At'
 
     ];
 
 
     const rows =
-      entries.map(
-        entry => {
 
-          const missingItems =
-            entry.missingItems || [];
+      entries.map(entry => {
 
-
-          const checklistStatus =
-
-            missingItems.length
-
-              ? missingItems
-
-                  .map(
-                    item =>
-                      `${item.name}${
-                        item.qty > 1
-                          ? ` x${item.qty}`
-                          : ''
-                      }`
-                  )
-
-                  .join(' | ')
-
-              : 'Complete';
+        const missingItems =
+          entry.missingItems || [];
 
 
-          return [
+        const checklistStatus =
 
-            entry.serialNumber,
-            entry.crewMember,
-            entry.entryDate,
-            checklistStatus,
-            entry.needed || '',
-            entry.createdAt
+          missingItems.length
 
-          ];
+            ? missingItems
 
-        }
-      );
+                .map(
+                  item =>
+
+                    `${item.name}${
+                      item.qty > 1
+                        ? ` x${item.qty}`
+                        : ''
+                    }`
+
+                )
+
+                .join(' | ')
+
+            :
+
+              'Complete';
+
+
+        return [
+
+          entry.serialNumber,
+
+          entry.crewMember,
+
+          entry.entryDate,
+
+          checklistStatus,
+
+          entry.needed || '',
+
+          entry.createdAt
+
+        ];
+
+      });
 
 
     return [
@@ -2423,6 +2352,7 @@
 
       .map(
         row =>
+
           row
             .map(csvEscape)
             .join(',')
@@ -2444,11 +2374,14 @@
 
 
     return new Blob(
+
       [csvContent],
+
       {
         type:
           'text/csv;charset=utf-8;'
       }
+
     );
 
   }
@@ -2460,9 +2393,11 @@
       filterDateFromEl.value ||
       'start';
 
+
     const toPart =
       filterDateToEl.value ||
       'end';
+
 
     const toolBoxPart =
 
@@ -2478,10 +2413,12 @@
 
 
     return (
+
       `van_tool_kit_log_` +
       `${toolBoxPart}_` +
       `${fromPart}_to_` +
       `${toPart}.csv`
+
     );
 
   }
@@ -2523,6 +2460,10 @@
   }
 
 
+  // =========================================================
+  // DOWNLOAD CSV
+  // =========================================================
+
   function downloadCSV() {
 
     const filteredLog =
@@ -2532,8 +2473,11 @@
     if (!filteredLog.length) {
 
       showStatus(
+
         'There are no filtered log entries to download.',
+
         true
+
       );
 
       return;
@@ -2573,8 +2517,11 @@
     if (!filteredLog.length) {
 
       showStatus(
+
         'There are no filtered log entries to email.',
+
         true
+
       );
 
       return;
@@ -2640,11 +2587,15 @@
 
 
     if (
+
       navigator.share &&
+
       navigator.canShare &&
+
       navigator.canShare({
         files: [file]
       })
+
     ) {
 
       try {
@@ -2664,7 +2615,9 @@
 
 
         showStatus(
+
           'Share sheet opened. Choose your mail app to send the CSV.'
+
         );
 
 
@@ -2705,8 +2658,11 @@
         encodeURIComponent(subject)
       }&body=${
         encodeURIComponent(
+
           body +
+
           '\n\nThe CSV file has been downloaded. Attach it to this email before sending.'
+
         )
       }`;
 
@@ -2716,14 +2672,16 @@
 
 
     showStatus(
+
       'CSV downloaded and mail app opened. Attach the downloaded CSV to send it.'
+
     );
 
   }
 
 
   // =========================================================
-  // CHECKLIST EVENTS
+  // CHECKLIST EVENT LISTENERS
   // =========================================================
 
   document.addEventListener(
@@ -2782,96 +2740,7 @@
 
 
   // =========================================================
-  // CLICK LOG ENTRY
-  // =========================================================
-
-  logListEl.addEventListener(
-    'click',
-    function(e) {
-
-      const logItem =
-        e.target.closest(
-          '.log-item[data-log-id]'
-        );
-
-
-      if (!logItem) {
-        return;
-      }
-
-
-      selectLogEntry(
-        logItem.dataset.logId
-      );
-
-    }
-  );
-
-
-  // =========================================================
-  // AUTOSAVE NEEDED
-  // =========================================================
-
-  if (neededTextEl) {
-
-    neededTextEl.addEventListener(
-      'input',
-      function() {
-
-        if (!selectedLogId) {
-          return;
-        }
-
-
-        // Capture the current row and current text.
-        // This prevents text from accidentally
-        // saving to another row if the user clicks
-        // a different inspection before the timer ends.
-
-        const logId =
-          selectedLogId;
-
-        const textToSave =
-          neededTextEl.value;
-
-
-        clearTimeout(
-          neededSaveTimer
-        );
-
-
-        if (neededStatusEl) {
-
-          neededStatusEl.textContent =
-            'Typing...';
-
-          neededStatusEl.style.color =
-            'var(--primary-dark)';
-
-        }
-
-
-        neededSaveTimer =
-          setTimeout(
-
-            () =>
-              saveNeededText(
-                logId,
-                textToSave
-              ),
-
-            700
-
-          );
-
-      }
-    );
-
-  }
-
-
-  // =========================================================
-  // FILTER EVENTS
+  // LOG FILTER EVENTS
   // =========================================================
 
   filterDateFromEl
@@ -2896,14 +2765,12 @@
 
 
   // =========================================================
-  // INITIAL LOAD
+  // INITIAL PAGE LOAD
   // =========================================================
 
   loadChecklistState();
 
   updateChecklistState();
-
-  clearNeededSelection();
 
   loadSupabaseLog();
 
