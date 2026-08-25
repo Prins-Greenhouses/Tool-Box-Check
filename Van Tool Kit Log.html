@@ -909,6 +909,38 @@
           </div>
         </div>
 
+        <div class="field" style="margin-top:20px;">
+  <label for="neededText">Needed</label>
+
+  <textarea
+    id="neededText"
+    rows="4"
+    placeholder="Select an inspection above, then enter tools, parts, or supplies needed..."
+    disabled
+    style="
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 16px;
+      font-size:15px;
+      background:rgba(255,255,255,0.88);
+      color:var(--text);
+      resize:vertical;
+      outline:none;
+    "
+  ></textarea>
+
+  <div
+    id="neededStatus"
+    style="
+      margin-top:6px;
+      font-size:13px;
+      font-weight:700;
+      min-height:18px;
+    "
+  ></div>
+</div>
+
         <div class="log-list" id="logList"></div>
 
         <div class="button-row">
@@ -934,497 +966,1946 @@
     );
   </script>
 
-  <script>
-    const CHECKLIST_STATE_KEY = 'vanToolChecklistState_v1';
+<script>
 
-    // Running inspection log is loaded from Supabase.
-    let supabaseLog = [];
+  const CHECKLIST_STATE_KEY = 'vanToolChecklistState_v1';
 
-    const serialNumberEl = document.getElementById('serialNumber');
-    const crewMemberEl = document.getElementById('crewMember');
-    const entryDateEl = document.getElementById('entryDate');
-    const logListEl = document.getElementById('logList');
-    const logCountEl = document.getElementById('logCount');
-    const statusMsgEl = document.getElementById('statusMsg');
-    const filterDateFromEl = document.getElementById('filterDateFrom');
-    const filterDateToEl = document.getElementById('filterDateTo');
-    const filterToolBoxEl = document.getElementById('filterToolBox');
+  // Running inspection log is loaded from Supabase.
+  let supabaseLog = [];
 
-    const toolboxMap = {
-      "FA-5046": "Jacob",
-      "FA-5047": "Dave",
-      "FA-5026": "Ken"
-    };
+  // Currently selected inspection for the Needed editor
+  let selectedLogId = null;
 
-    entryDateEl.value = new Date().toISOString().split('T')[0];
+  // Used to delay saving while the user is typing
+  let neededSaveTimer = null;
 
-    function getChecklistItems() {
-      return [...document.querySelectorAll('.check-item')];
+
+  // =========================================================
+  // PAGE ELEMENTS
+  // =========================================================
+
+  const serialNumberEl = document.getElementById('serialNumber');
+  const crewMemberEl = document.getElementById('crewMember');
+  const entryDateEl = document.getElementById('entryDate');
+
+  const logListEl = document.getElementById('logList');
+  const logCountEl = document.getElementById('logCount');
+
+  const statusMsgEl = document.getElementById('statusMsg');
+
+  const filterDateFromEl = document.getElementById('filterDateFrom');
+  const filterDateToEl = document.getElementById('filterDateTo');
+  const filterToolBoxEl = document.getElementById('filterToolBox');
+
+  // Needed editor
+  const neededTextEl = document.getElementById('neededText');
+  const neededStatusEl = document.getElementById('neededStatus');
+
+
+  // =========================================================
+  // VAN / CREW MAP
+  // =========================================================
+
+  const toolboxMap = {
+
+    "FA-5046": "Jacob",
+    "FA-5047": "Dave",
+    "FA-5026": "Ken"
+
+  };
+
+
+  // =========================================================
+  // DEFAULT DATE
+  // =========================================================
+
+  entryDateEl.value =
+    new Date().toISOString().split('T')[0];
+
+
+  // =========================================================
+  // CHECKLIST
+  // =========================================================
+
+  function getChecklistItems() {
+
+    return [
+      ...document.querySelectorAll('.check-item')
+    ];
+
+  }
+
+
+  function sanitizeQtyInput(input) {
+
+    let value = parseInt(input.value, 10);
+
+    if (isNaN(value) || value < 0) {
+      value = 0;
     }
 
-    function sanitizeQtyInput(input) {
-      let value = parseInt(input.value, 10);
-      if (isNaN(value) || value < 0) value = 0;
-      input.value = value;
-      return value;
-    }
+    input.value = value;
 
-    function updateChecklistState() {
-      getChecklistItems().forEach(item => {
-        const checkbox = item.querySelector('input[type="checkbox"]');
-        const qty = item.querySelector('.qty');
-        const qtyValue = sanitizeQtyInput(qty);
+    return value;
 
-        item.classList.remove('missing', 'complete');
+  }
 
-        if (checkbox.checked && qtyValue > 0) {
-          item.classList.add('complete');
-        } else {
-          item.classList.add('missing');
-        }
-      });
-    }
 
-    function showStatus(message, isError = false) {
-      statusMsgEl.textContent = message;
-      statusMsgEl.style.color = isError ? 'var(--danger)' : 'var(--good)';
+  function updateChecklistState() {
 
-      if (message) {
-        setTimeout(() => {
-          if (statusMsgEl.textContent === message) {
-            statusMsgEl.textContent = '';
-          }
-        }, 3200);
+    getChecklistItems().forEach(item => {
+
+      const checkbox =
+        item.querySelector(
+          'input[type="checkbox"]'
+        );
+
+      const qty =
+        item.querySelector('.qty');
+
+      const qtyValue =
+        sanitizeQtyInput(qty);
+
+
+      item.classList.remove(
+        'missing',
+        'complete'
+      );
+
+
+      if (
+        checkbox.checked &&
+        qtyValue > 0
+      ) {
+
+        item.classList.add('complete');
+
+      } else {
+
+        item.classList.add('missing');
+
       }
+
+    });
+
+  }
+
+
+  // =========================================================
+  // STATUS MESSAGE
+  // =========================================================
+
+  function showStatus(
+    message,
+    isError = false
+  ) {
+
+    statusMsgEl.textContent =
+      message;
+
+    statusMsgEl.style.color =
+      isError
+        ? 'var(--danger)'
+        : 'var(--good)';
+
+
+    if (message) {
+
+      setTimeout(() => {
+
+        if (
+          statusMsgEl.textContent ===
+          message
+        ) {
+
+          statusMsgEl.textContent = '';
+
+        }
+
+      }, 3200);
+
     }
 
-    function autoFillCrew() {
-      const toolbox = serialNumberEl.value;
-      crewMemberEl.value = toolboxMap[toolbox] || '';
-    }
+  }
 
-    function clearChecklist() {
-      getChecklistItems().forEach(item => {
-        item.querySelector('input[type="checkbox"]').checked = false;
-        item.querySelector('.qty').value = 1;
+
+  // =========================================================
+  // AUTO FILL CREW MEMBER
+  // =========================================================
+
+  function autoFillCrew() {
+
+    const toolbox =
+      serialNumberEl.value;
+
+    crewMemberEl.value =
+      toolboxMap[toolbox] || '';
+
+  }
+
+
+  // =========================================================
+  // CLEAR CHECKLIST
+  // =========================================================
+
+  function clearChecklist() {
+
+    getChecklistItems()
+      .forEach(item => {
+
+        item
+          .querySelector(
+            'input[type="checkbox"]'
+          )
+          .checked = false;
+
+        item
+          .querySelector('.qty')
+          .value = 1;
+
       });
 
-      serialNumberEl.value = '';
-      crewMemberEl.value = '';
-      entryDateEl.value = new Date().toISOString().split('T')[0];
-      updateChecklistState();
-      showStatus('Checklist cleared.');
-    }
 
-    function checkAllItems() {
-      getChecklistItems().forEach(item => {
-        const checkbox = item.querySelector('input[type="checkbox"]');
-        const qty = item.querySelector('.qty');
+    serialNumberEl.value = '';
+
+    crewMemberEl.value = '';
+
+    entryDateEl.value =
+      new Date()
+        .toISOString()
+        .split('T')[0];
+
+
+    updateChecklistState();
+
+    showStatus(
+      'Checklist cleared.'
+    );
+
+  }
+
+
+  // =========================================================
+  // CHECK ALL ITEMS
+  // =========================================================
+
+  function checkAllItems() {
+
+    getChecklistItems()
+      .forEach(item => {
+
+        const checkbox =
+          item.querySelector(
+            'input[type="checkbox"]'
+          );
+
+        const qty =
+          item.querySelector('.qty');
+
 
         checkbox.checked = true;
-        if (!qty.value || Number(qty.value) < 1) {
+
+
+        if (
+          !qty.value ||
+          Number(qty.value) < 1
+        ) {
+
           qty.value = 1;
+
         }
+
       });
 
-      updateChecklistState();
-      showStatus('All items checked.');
+
+    updateChecklistState();
+
+    showStatus(
+      'All items checked.'
+    );
+
+  }
+
+
+  // =========================================================
+  // SAVE CURRENT CHECKLIST STATE LOCALLY
+  // =========================================================
+
+  function saveChecklistState() {
+
+    const state = {
+
+      serialNumber:
+        serialNumberEl.value.trim(),
+
+      crewMember:
+        crewMemberEl.value.trim(),
+
+      entryDate:
+        entryDateEl.value,
+
+      items:
+        getChecklistItems()
+          .map(item => {
+
+            const checkbox =
+              item.querySelector(
+                'input[type="checkbox"]'
+              );
+
+            const qty =
+              item.querySelector('.qty');
+
+            return {
+
+              name:
+                checkbox.value,
+
+              checked:
+                checkbox.checked,
+
+              qty:
+                sanitizeQtyInput(qty)
+
+            };
+
+          })
+
+    };
+
+
+    localStorage.setItem(
+      CHECKLIST_STATE_KEY,
+      JSON.stringify(state)
+    );
+
+  }
+
+
+  // =========================================================
+  // LOAD CURRENT CHECKLIST STATE
+  // =========================================================
+
+  function loadChecklistState() {
+
+    const raw =
+      localStorage.getItem(
+        CHECKLIST_STATE_KEY
+      );
+
+
+    if (!raw) {
+      return;
     }
 
-    function saveChecklistState() {
-      const state = {
-        serialNumber: serialNumberEl.value.trim(),
-        crewMember: crewMemberEl.value.trim(),
-        entryDate: entryDateEl.value,
-        items: getChecklistItems().map(item => {
-          const checkbox = item.querySelector('input[type="checkbox"]');
-          const qty = item.querySelector('.qty');
-          return {
-            name: checkbox.value,
-            checked: checkbox.checked,
-            qty: sanitizeQtyInput(qty)
-          };
-        })
-      };
 
-      localStorage.setItem(CHECKLIST_STATE_KEY, JSON.stringify(state));
-      showStatus('Checklist saved.');
-    }
+    try {
 
-    function loadChecklistState() {
-      const raw = localStorage.getItem(CHECKLIST_STATE_KEY);
-      if (!raw) return;
+      const state =
+        JSON.parse(raw);
 
-      try {
-        const state = JSON.parse(raw);
-        serialNumberEl.value = state.serialNumber || '';
-        crewMemberEl.value = state.crewMember || '';
-        entryDateEl.value = state.entryDate || new Date().toISOString().split('T')[0];
 
-        const map = new Map((state.items || []).map(item => [item.name, item]));
+      serialNumberEl.value =
+        state.serialNumber || '';
 
-        getChecklistItems().forEach(item => {
-          const checkbox = item.querySelector('input[type="checkbox"]');
-          const qty = item.querySelector('.qty');
-          const saved = map.get(checkbox.value);
+      crewMemberEl.value =
+        state.crewMember || '';
+
+      entryDateEl.value =
+        state.entryDate ||
+        new Date()
+          .toISOString()
+          .split('T')[0];
+
+
+      const map =
+        new Map(
+
+          (state.items || [])
+            .map(item => [
+              item.name,
+              item
+            ])
+
+        );
+
+
+      getChecklistItems()
+        .forEach(item => {
+
+          const checkbox =
+            item.querySelector(
+              'input[type="checkbox"]'
+            );
+
+          const qty =
+            item.querySelector('.qty');
+
+          const saved =
+            map.get(
+              checkbox.value
+            );
+
 
           if (saved) {
-            checkbox.checked = !!saved.checked;
-            qty.value = Number.isFinite(saved.qty) ? saved.qty : 1;
+
+            checkbox.checked =
+              !!saved.checked;
+
+            qty.value =
+              Number.isFinite(
+                saved.qty
+              )
+                ? saved.qty
+                : 1;
+
           }
+
         });
 
-        updateChecklistState();
-      } catch {
-        showStatus('Saved checklist could not be loaded.', true);
-      }
+
+      updateChecklistState();
+
+    } catch {
+
+      showStatus(
+        'Saved checklist could not be loaded.',
+        true
+      );
+
     }
 
-    function getLog() {
-      return supabaseLog;
+  }
+
+
+  // =========================================================
+  // SUPABASE LOG
+  // =========================================================
+
+  function getLog() {
+
+    return supabaseLog;
+
+  }
+
+
+  async function loadSupabaseLog(
+    showLoading = true
+  ) {
+
+    if (showLoading) {
+
+      logCountEl.textContent =
+        'Loading entries...';
+
+      logListEl.innerHTML =
+        '<div class="empty">Loading inspection log from Supabase...</div>';
+
     }
 
-    async function loadSupabaseLog(showLoading = true) {
-      if (showLoading) {
-        logCountEl.textContent = 'Loading entries...';
-        logListEl.innerHTML = '<div class="empty">Loading inspection log from Supabase...</div>';
-      }
 
-      try {
-        const { data, error } = await supabaseClient
-          .from('van_tool_kit_logs')
-          .select('id, serial_number, crew_member, entry_date, missing_items, created_at')
-          .order('created_at', { ascending: false });
+    try {
 
-        if (error) {
-          console.error('Supabase log load error:', error);
-          supabaseLog = [];
-          logCountEl.textContent = '0 entries shown';
-          logListEl.innerHTML =
-            '<div class="empty">Could not load the inspection log from Supabase.</div>';
-          showStatus('Could not load Supabase log: ' + error.message, true);
-          return;
-        }
+      const {
+        data,
+        error
+      } = await supabaseClient
 
-        supabaseLog = (data || []).map(row => ({
-          id: row.id,
-          serialNumber: row.serial_number || '',
-          crewMember: row.crew_member || '',
-          entryDate: row.entry_date || '',
-          missingItems: Array.isArray(row.missing_items) ? row.missing_items : [],
-          createdAt: row.created_at || ''
-        }));
+        .from(
+          'van_tool_kit_logs'
+        )
 
-        renderLog();
+        .select(`
+          id,
+          serial_number,
+          crew_member,
+          entry_date,
+          missing_items,
+          needed,
+          created_at
+        `)
 
-      } catch (error) {
-        console.error('Unexpected Supabase log load error:', error);
-        supabaseLog = [];
-        logCountEl.textContent = '0 entries shown';
-        logListEl.innerHTML =
-          '<div class="empty">Could not connect to Supabase to load the inspection log.</div>';
-        showStatus('Could not connect to Supabase.', true);
-      }
-    }
-
-    function collectFormData() {
-      const serialNumber = serialNumberEl.value.trim();
-      const crewMember = crewMemberEl.value.trim();
-      const entryDate = entryDateEl.value;
-
-      const missingItems = getChecklistItems()
-        .map(item => {
-          const checkbox = item.querySelector('input[type="checkbox"]');
-          const qty = item.querySelector('.qty');
-          return {
-            name: checkbox.value,
-            checked: checkbox.checked,
-            qty: sanitizeQtyInput(qty)
-          };
-        })
-        .filter(item => !item.checked || item.qty === 0)
-        .map(item => ({
-          name: item.name,
-          qty: item.qty
-        }));
-
-      return { serialNumber, crewMember, entryDate, missingItems };
-    }
-
-    async function addEntry() {
-      const { serialNumber, crewMember, entryDate, missingItems } = collectFormData();
-
-      if (!serialNumber || !crewMember || !entryDate) {
-        showStatus('Please fill in van FA number, crew member name, and date.', true);
-        return;
-      }
-
-      showStatus('Saving inspection...');
-
-      try {
-        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-
-        if (userError || !userData.user) {
-          console.error('Supabase user error:', userError);
-          showStatus('You must be logged in to save an inspection.', true);
-          return;
-        }
-
-        const loggedInUser = userData.user;
-
-        const { error: insertError } = await supabaseClient
-          .from('van_tool_kit_logs')
-          .insert({
-            user_id: loggedInUser.id,
-            serial_number: serialNumber,
-            crew_member: crewMember,
-            entry_date: entryDate,
-            missing_items: missingItems
-          });
-
-        if (insertError) {
-          console.error('Supabase insert error:', insertError);
-          showStatus('Could not save inspection: ' + insertError.message, true);
-          return;
-        }
-
-        // Reload the running log directly from Supabase so every device
-        // sees the same database-backed inspection history.
-        await loadSupabaseLog(false);
-        saveChecklistState();
-
-        showStatus('✓ Inspection saved successfully.');
-
-      } catch (error) {
-        console.error('Unexpected Supabase error:', error);
-        showStatus('Could not connect to Supabase.', true);
-      }
-    }
-
-    function escapeHtml(text) {
-      return String(text ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function getFilteredLog() {
-      const log = getLog();
-      const filterDateFrom = filterDateFromEl.value;
-      const filterDateTo = filterDateToEl.value;
-      const filterToolBox = filterToolBoxEl.value.trim().toLowerCase();
-
-      return log.filter(entry => {
-        const entryDate = entry.entryDate || '';
-        const matchesFrom = !filterDateFrom || entryDate >= filterDateFrom;
-        const matchesTo = !filterDateTo || entryDate <= filterDateTo;
-        const matchesToolBox =
-          !filterToolBox ||
-          String(entry.serialNumber || '').trim().toLowerCase() === filterToolBox;
-
-        return matchesFrom && matchesTo && matchesToolBox;
-      });
-    }
-
-    function populateToolBoxFilter(selectedValue = '') {
-      const log = getLog();
-      const serials = [...new Set(
-        log.map(entry => String(entry.serialNumber || '').trim()).filter(Boolean)
-      )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-
-      filterToolBoxEl.innerHTML =
-        '<option value="">All Vans</option>' +
-        serials.map(serial => `<option value="${escapeHtml(serial)}">${escapeHtml(serial)}</option>`).join('');
-
-      if (selectedValue && serials.includes(selectedValue)) {
-        filterToolBoxEl.value = selectedValue;
-      }
-    }
-
-    function renderLog() {
-      const selectedToolBox = filterToolBoxEl.value;
-      populateToolBoxFilter(selectedToolBox);
-
-      const filteredLog = getFilteredLog();
-      logCountEl.textContent = `${filteredLog.length} entr${filteredLog.length === 1 ? 'y' : 'ies'} shown`;
-
-      if (!filteredLog.length) {
-        logListEl.innerHTML = '<div class="empty">No entries match the selected filters.</div>';
-        return;
-      }
-
-      logListEl.innerHTML = filteredLog.map(entry => {
-        const missing = entry.missingItems?.length
-          ? entry.missingItems.map(item =>
-              `<span class="pill">${escapeHtml(item.name)}${item.qty > 1 ? ` × ${item.qty}` : ''}</span>`
-            ).join('')
-          : '<div class="meta"><strong>Complete</strong></div>';
-
-        return `
-          <div class="log-item">
-            <div class="log-item-top">
-              <div class="serial">${escapeHtml(entry.serialNumber)}</div>
-              <span class="pill">${escapeHtml(entry.entryDate)}</span>
-            </div>
-            <div class="meta"><strong>Crew Member:</strong> ${escapeHtml(entry.crewMember)}</div>
-            <div class="small-title">Missing Items</div>
-            <div>${missing}</div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function clearFilters() {
-      filterDateFromEl.value = '';
-      filterDateToEl.value = '';
-      filterToolBoxEl.value = '';
-      renderLog();
-      showStatus('Log filters cleared.');
-    }
-
-    function csvEscape(value) {
-      const text = String(value ?? '');
-      return `"${text.replace(/"/g, '""')}"`;
-    }
-
-    function buildCSVContent(entries) {
-      const headers = [
-        'Van FA Number',
-        'Crew Member Name',
-        'Date',
-        'Missing Items / Status',
-        'Created At'
-      ];
-
-      const rows = entries.map(entry => {
-        const missingItems = entry.missingItems || [];
-        const checklistStatus = missingItems.length
-          ? missingItems.map(item => `${item.name}${item.qty > 1 ? ` x${item.qty}` : ''}`).join(' | ')
-          : 'Complete';
-
-        return [
-          entry.serialNumber,
-          entry.crewMember,
-          entry.entryDate,
-          checklistStatus,
-          entry.createdAt
-        ];
-      });
-
-      return [headers, ...rows]
-        .map(row => row.map(csvEscape).join(','))
-        .join('\n');
-    }
-
-    function createCSVBlob(entries) {
-      const csvContent = buildCSVContent(entries);
-      return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    }
-
-    function getExportFileName() {
-      const fromPart = filterDateFromEl.value || 'start';
-      const toPart = filterDateToEl.value || 'end';
-      const toolBoxPart = (filterToolBoxEl.value || 'all-tool-boxes').replace(/[^a-z0-9_-]+/gi, '_');
-
-      return `van_tool_kit_log_${toolBoxPart}_${fromPart}_to_${toPart}.csv`;
-    }
-
-    function downloadBlob(blob, fileName) {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
-
-    function downloadCSV() {
-      const filteredLog = getFilteredLog();
-
-      if (!filteredLog.length) {
-        showStatus('There are no filtered log entries to download.', true);
-        return;
-      }
-
-      const blob = createCSVBlob(filteredLog);
-      downloadBlob(blob, getExportFileName());
-      showStatus('Filtered CSV downloaded.');
-    }
-
-    async function emailFilteredCSV() {
-      const filteredLog = getFilteredLog();
-
-      if (!filteredLog.length) {
-        showStatus('There are no filtered log entries to email.', true);
-        return;
-      }
-
-      const fileName = getExportFileName();
-      const blob = createCSVBlob(filteredLog);
-      const file = new File([blob], fileName, { type: 'text/csv' });
-      const subject = 'Van Tool Kit Log Export';
-      const body = [
-        'Attached is the filtered Van Tool Kit log export.',
-        '',
-        `Date from: ${filterDateFromEl.value || 'Beginning'}`,
-        `Date to: ${filterDateToEl.value || 'End'}`,
-        `Tool box filter: ${filterToolBoxEl.value || 'All vans'}`,
-        `Entries included: ${filteredLog.length}`
-      ].join('\n');
-
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            title: subject,
-            text: body,
-            files: [file]
-          });
-          showStatus('Share sheet opened. Choose your mail app to send the CSV.');
-          return;
-        } catch (error) {
-          if (error && error.name === 'AbortError') {
-            showStatus('Email export canceled.', true);
-            return;
+        .order(
+          'created_at',
+          {
+            ascending: false
           }
-        }
+        );
+
+
+      if (error) {
+
+        console.error(
+          'Supabase log load error:',
+          error
+        );
+
+        supabaseLog = [];
+
+        logCountEl.textContent =
+          '0 entries shown';
+
+        logListEl.innerHTML =
+          '<div class="empty">Could not load the inspection log from Supabase.</div>';
+
+        showStatus(
+          'Could not load Supabase log: ' +
+          error.message,
+          true
+        );
+
+        return;
+
       }
 
-      downloadBlob(blob, fileName);
-      const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + '\n\nThe CSV file has been downloaded. Attach it to this email before sending.')}`;
-      window.location.href = mailto;
-      showStatus('CSV downloaded and mail app opened. Attach the downloaded CSV to send it.');
+
+      supabaseLog =
+        (data || [])
+          .map(row => ({
+
+            id:
+              row.id,
+
+            serialNumber:
+              row.serial_number || '',
+
+            crewMember:
+              row.crew_member || '',
+
+            entryDate:
+              row.entry_date || '',
+
+            missingItems:
+              Array.isArray(
+                row.missing_items
+              )
+                ? row.missing_items
+                : [],
+
+            needed:
+              row.needed || '',
+
+            createdAt:
+              row.created_at || ''
+
+          }));
+
+
+      // If selected inspection was deleted / no longer exists
+      if (
+        selectedLogId !== null &&
+        !supabaseLog.some(
+          entry =>
+            Number(entry.id) ===
+            Number(selectedLogId)
+        )
+      ) {
+
+        clearNeededSelection();
+
+      }
+
+
+      renderLog();
+
+
+    } catch (error) {
+
+      console.error(
+        'Unexpected Supabase log load error:',
+        error
+      );
+
+
+      supabaseLog = [];
+
+      logCountEl.textContent =
+        '0 entries shown';
+
+      logListEl.innerHTML =
+        '<div class="empty">Could not connect to Supabase to load the inspection log.</div>';
+
+
+      showStatus(
+        'Could not connect to Supabase.',
+        true
+      );
+
     }
 
-    document.addEventListener('change', function(e) {
-      if (e.target.matches('input[type="checkbox"], .qty')) {
-        updateChecklistState();
+  }
+
+
+  // =========================================================
+  // COLLECT CHECKLIST FORM DATA
+  // =========================================================
+
+  function collectFormData() {
+
+    const serialNumber =
+      serialNumberEl.value.trim();
+
+    const crewMember =
+      crewMemberEl.value.trim();
+
+    const entryDate =
+      entryDateEl.value;
+
+
+    const missingItems =
+      getChecklistItems()
+
+        .map(item => {
+
+          const checkbox =
+            item.querySelector(
+              'input[type="checkbox"]'
+            );
+
+          const qty =
+            item.querySelector('.qty');
+
+
+          return {
+
+            name:
+              checkbox.value,
+
+            checked:
+              checkbox.checked,
+
+            qty:
+              sanitizeQtyInput(qty)
+
+          };
+
+        })
+
+        .filter(
+          item =>
+            !item.checked ||
+            item.qty === 0
+        )
+
+        .map(item => ({
+
+          name:
+            item.name,
+
+          qty:
+            item.qty
+
+        }));
+
+
+    return {
+
+      serialNumber,
+      crewMember,
+      entryDate,
+      missingItems
+
+    };
+
+  }
+
+
+  // =========================================================
+  // ADD INSPECTION TO SUPABASE
+  // =========================================================
+
+  async function addEntry() {
+
+    const {
+
+      serialNumber,
+      crewMember,
+      entryDate,
+      missingItems
+
+    } = collectFormData();
+
+
+    if (
+      !serialNumber ||
+      !crewMember ||
+      !entryDate
+    ) {
+
+      showStatus(
+        'Please fill in van FA number, crew member name, and date.',
+        true
+      );
+
+      return;
+
+    }
+
+
+    showStatus(
+      'Saving inspection...'
+    );
+
+
+    try {
+
+      const {
+
+        data: userData,
+        error: userError
+
+      } =
+        await supabaseClient
+          .auth
+          .getUser();
+
+
+      if (
+        userError ||
+        !userData.user
+      ) {
+
+        console.error(
+          'Supabase user error:',
+          userError
+        );
+
+        showStatus(
+          'You must be logged in to save an inspection.',
+          true
+        );
+
+        return;
+
       }
-    });
 
-    document.addEventListener('input', function(e) {
-      if (e.target.matches('.qty')) {
-        updateChecklistState();
+
+      const loggedInUser =
+        userData.user;
+
+
+      const {
+        error: insertError
+      } =
+        await supabaseClient
+
+          .from(
+            'van_tool_kit_logs'
+          )
+
+          .insert({
+
+            user_id:
+              loggedInUser.id,
+
+            serial_number:
+              serialNumber,
+
+            crew_member:
+              crewMember,
+
+            entry_date:
+              entryDate,
+
+            missing_items:
+              missingItems,
+
+            needed:
+              ''
+
+          });
+
+
+      if (insertError) {
+
+        console.error(
+          'Supabase insert error:',
+          insertError
+        );
+
+        showStatus(
+          'Could not save inspection: ' +
+          insertError.message,
+          true
+        );
+
+        return;
+
       }
-    });
 
-    document.addEventListener('blur', function(e) {
-      if (e.target.matches('.qty')) {
-        sanitizeQtyInput(e.target);
-        updateChecklistState();
+
+      // Reload running log from Supabase
+      await loadSupabaseLog(false);
+
+
+      saveChecklistState();
+
+
+      showStatus(
+        '✓ Inspection saved successfully.'
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        'Unexpected Supabase error:',
+        error
+      );
+
+      showStatus(
+        'Could not connect to Supabase.',
+        true
+      );
+
+    }
+
+  }
+
+
+  // =========================================================
+  // HTML ESCAPE
+  // =========================================================
+
+  function escapeHtml(text) {
+
+    return String(
+      text ?? ''
+    )
+
+      .replace(
+        /&/g,
+        '&amp;'
+      )
+
+      .replace(
+        /</g,
+        '&lt;'
+      )
+
+      .replace(
+        />/g,
+        '&gt;'
+      )
+
+      .replace(
+        /"/g,
+        '&quot;'
+      )
+
+      .replace(
+        /'/g,
+        '&#039;'
+      );
+
+  }
+
+
+  // =========================================================
+  // FILTER LOG
+  // =========================================================
+
+  function getFilteredLog() {
+
+    const log =
+      getLog();
+
+    const filterDateFrom =
+      filterDateFromEl.value;
+
+    const filterDateTo =
+      filterDateToEl.value;
+
+    const filterToolBox =
+      filterToolBoxEl
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    return log.filter(
+      entry => {
+
+        const entryDate =
+          entry.entryDate || '';
+
+
+        const matchesFrom =
+          !filterDateFrom ||
+          entryDate >= filterDateFrom;
+
+
+        const matchesTo =
+          !filterDateTo ||
+          entryDate <= filterDateTo;
+
+
+        const matchesToolBox =
+
+          !filterToolBox ||
+
+          String(
+            entry.serialNumber || ''
+          )
+            .trim()
+            .toLowerCase()
+            ===
+            filterToolBox;
+
+
+        return (
+          matchesFrom &&
+          matchesTo &&
+          matchesToolBox
+        );
+
       }
-    }, true);
+    );
 
-    filterDateFromEl.addEventListener('change', renderLog);
-    filterDateToEl.addEventListener('change', renderLog);
-    filterToolBoxEl.addEventListener('change', renderLog);
+  }
 
-    loadChecklistState();
-    updateChecklistState();
-    loadSupabaseLog();
-  </script>
+
+  function populateToolBoxFilter(
+    selectedValue = ''
+  ) {
+
+    const log =
+      getLog();
+
+
+    const serials =
+      [
+        ...new Set(
+
+          log
+
+            .map(
+              entry =>
+                String(
+                  entry.serialNumber || ''
+                ).trim()
+            )
+
+            .filter(Boolean)
+
+        )
+      ]
+
+        .sort(
+          (a, b) =>
+            a.localeCompare(
+              b,
+              undefined,
+              {
+                numeric: true,
+                sensitivity: 'base'
+              }
+            )
+        );
+
+
+    filterToolBoxEl.innerHTML =
+
+      '<option value="">All Vans</option>' +
+
+      serials
+        .map(
+          serial =>
+            `<option value="${escapeHtml(serial)}">${escapeHtml(serial)}</option>`
+        )
+        .join('');
+
+
+    if (
+      selectedValue &&
+      serials.includes(
+        selectedValue
+      )
+    ) {
+
+      filterToolBoxEl.value =
+        selectedValue;
+
+    }
+
+  }
+
+
+  // =========================================================
+  // RENDER LOG
+  // =========================================================
+
+  function renderLog() {
+
+    const selectedToolBox =
+      filterToolBoxEl.value;
+
+
+    populateToolBoxFilter(
+      selectedToolBox
+    );
+
+
+    const filteredLog =
+      getFilteredLog();
+
+
+    logCountEl.textContent =
+
+      `${filteredLog.length} entr${
+        filteredLog.length === 1
+          ? 'y'
+          : 'ies'
+      } shown`;
+
+
+    if (!filteredLog.length) {
+
+      logListEl.innerHTML =
+        '<div class="empty">No entries match the selected filters.</div>';
+
+      return;
+
+    }
+
+
+    logListEl.innerHTML =
+
+      filteredLog
+        .map(entry => {
+
+
+          const missing =
+
+            entry.missingItems?.length
+
+              ? entry.missingItems
+
+                  .map(
+                    item =>
+
+                      `<span class="pill">${
+                        escapeHtml(item.name)
+                      }${
+                        item.qty > 1
+                          ? ` × ${item.qty}`
+                          : ''
+                      }</span>`
+
+                  )
+
+                  .join('')
+
+              :
+
+              '<div class="meta"><strong>Complete</strong></div>';
+
+
+          const neededDisplay =
+
+            entry.needed
+
+              ? escapeHtml(
+                  entry.needed
+                )
+
+              : 'Nothing currently listed';
+
+
+          const isSelected =
+
+            Number(entry.id) ===
+            Number(selectedLogId);
+
+
+          return `
+
+            <div
+              class="log-item"
+              data-log-id="${escapeHtml(entry.id)}"
+              style="
+                cursor:pointer;
+                ${
+                  isSelected
+                    ? 'border:2px solid var(--primary);'
+                    : ''
+                }
+              "
+            >
+
+              <div class="log-item-top">
+
+                <div class="serial">
+                  ${escapeHtml(
+                    entry.serialNumber
+                  )}
+                </div>
+
+                <span class="pill">
+                  ${escapeHtml(
+                    entry.entryDate
+                  )}
+                </span>
+
+              </div>
+
+
+              <div class="meta">
+
+                <strong>
+                  Crew Member:
+                </strong>
+
+                ${escapeHtml(
+                  entry.crewMember
+                )}
+
+              </div>
+
+
+              <div class="small-title">
+                Missing Items
+              </div>
+
+              <div>
+                ${missing}
+              </div>
+
+
+              <div class="small-title">
+                Needed
+              </div>
+
+              <div class="meta">
+                ${neededDisplay}
+              </div>
+
+            </div>
+
+          `;
+
+        })
+
+        .join('');
+
+  }
+
+
+  // =========================================================
+  // SELECT LOG ENTRY FOR "NEEDED" EDITING
+  // =========================================================
+
+  function selectLogEntry(id) {
+
+    const entry =
+      supabaseLog.find(
+        item =>
+          Number(item.id) ===
+          Number(id)
+      );
+
+
+    if (!entry) {
+      return;
+    }
+
+
+    selectedLogId =
+      entry.id;
+
+
+    if (neededTextEl) {
+
+      neededTextEl.disabled =
+        false;
+
+      neededTextEl.value =
+        entry.needed || '';
+
+    }
+
+
+    if (neededStatusEl) {
+
+      neededStatusEl.textContent =
+
+        `Editing ${entry.serialNumber} - ${entry.entryDate}`;
+
+      neededStatusEl.style.color =
+        'var(--primary-dark)';
+
+    }
+
+
+    renderLog();
+
+  }
+
+
+  function clearNeededSelection() {
+
+    selectedLogId = null;
+
+
+    if (neededTextEl) {
+
+      neededTextEl.value = '';
+
+      neededTextEl.disabled =
+        true;
+
+    }
+
+
+    if (neededStatusEl) {
+
+      neededStatusEl.textContent = '';
+
+    }
+
+  }
+
+
+  // =========================================================
+  // SAVE "NEEDED" TEXT TO SUPABASE
+  // =========================================================
+
+  async function saveNeededText(
+    logId,
+    textToSave
+  ) {
+
+    if (!logId) {
+      return;
+    }
+
+
+    if (
+      neededStatusEl &&
+      Number(selectedLogId) ===
+      Number(logId)
+    ) {
+
+      neededStatusEl.textContent =
+        'Saving...';
+
+      neededStatusEl.style.color =
+        'var(--primary-dark)';
+
+    }
+
+
+    try {
+
+      const {
+        error
+      } =
+        await supabaseClient
+
+          .from(
+            'van_tool_kit_logs'
+          )
+
+          .update({
+
+            needed:
+              textToSave.trim()
+
+          })
+
+          .eq(
+            'id',
+            logId
+          );
+
+
+      if (error) {
+
+        console.error(
+          'Needed update error:',
+          error
+        );
+
+
+        if (
+          neededStatusEl &&
+          Number(selectedLogId) ===
+          Number(logId)
+        ) {
+
+          neededStatusEl.textContent =
+            'Could not save Needed.';
+
+          neededStatusEl.style.color =
+            'var(--danger)';
+
+        }
+
+
+        return;
+
+      }
+
+
+      // Update local Supabase data copy
+      const entry =
+        supabaseLog.find(
+          item =>
+            Number(item.id) ===
+            Number(logId)
+        );
+
+
+      if (entry) {
+
+        entry.needed =
+          textToSave.trim();
+
+      }
+
+
+      renderLog();
+
+
+      if (
+        neededStatusEl &&
+        Number(selectedLogId) ===
+        Number(logId)
+      ) {
+
+        neededStatusEl.textContent =
+          '✓ Saved';
+
+        neededStatusEl.style.color =
+          'var(--good)';
+
+      }
+
+
+    } catch (error) {
+
+      console.error(
+        'Unexpected Needed save error:',
+        error
+      );
+
+
+      if (
+        neededStatusEl &&
+        Number(selectedLogId) ===
+        Number(logId)
+      ) {
+
+        neededStatusEl.textContent =
+          'Could not connect to Supabase.';
+
+        neededStatusEl.style.color =
+          'var(--danger)';
+
+      }
+
+    }
+
+  }
+
+
+  // =========================================================
+  // CLEAR FILTERS
+  // =========================================================
+
+  function clearFilters() {
+
+    filterDateFromEl.value = '';
+
+    filterDateToEl.value = '';
+
+    filterToolBoxEl.value = '';
+
+
+    renderLog();
+
+
+    showStatus(
+      'Log filters cleared.'
+    );
+
+  }
+
+
+  // =========================================================
+  // CSV
+  // =========================================================
+
+  function csvEscape(value) {
+
+    const text =
+      String(value ?? '');
+
+
+    return `"${
+
+      text.replace(
+        /"/g,
+        '""'
+      )
+
+    }"`;
+
+  }
+
+
+  function buildCSVContent(
+    entries
+  ) {
+
+    const headers = [
+
+      'Van FA Number',
+      'Crew Member Name',
+      'Date',
+      'Missing Items / Status',
+      'Needed',
+      'Created At'
+
+    ];
+
+
+    const rows =
+      entries.map(
+        entry => {
+
+          const missingItems =
+            entry.missingItems || [];
+
+
+          const checklistStatus =
+
+            missingItems.length
+
+              ? missingItems
+
+                  .map(
+                    item =>
+                      `${item.name}${
+                        item.qty > 1
+                          ? ` x${item.qty}`
+                          : ''
+                      }`
+                  )
+
+                  .join(' | ')
+
+              : 'Complete';
+
+
+          return [
+
+            entry.serialNumber,
+            entry.crewMember,
+            entry.entryDate,
+            checklistStatus,
+            entry.needed || '',
+            entry.createdAt
+
+          ];
+
+        }
+      );
+
+
+    return [
+
+      headers,
+      ...rows
+
+    ]
+
+      .map(
+        row =>
+          row
+            .map(csvEscape)
+            .join(',')
+      )
+
+      .join('\n');
+
+  }
+
+
+  function createCSVBlob(
+    entries
+  ) {
+
+    const csvContent =
+      buildCSVContent(
+        entries
+      );
+
+
+    return new Blob(
+      [csvContent],
+      {
+        type:
+          'text/csv;charset=utf-8;'
+      }
+    );
+
+  }
+
+
+  function getExportFileName() {
+
+    const fromPart =
+      filterDateFromEl.value ||
+      'start';
+
+    const toPart =
+      filterDateToEl.value ||
+      'end';
+
+    const toolBoxPart =
+
+      (
+        filterToolBoxEl.value ||
+        'all-vans'
+      )
+
+        .replace(
+          /[^a-z0-9_-]+/gi,
+          '_'
+        );
+
+
+    return (
+      `van_tool_kit_log_` +
+      `${toolBoxPart}_` +
+      `${fromPart}_to_` +
+      `${toPart}.csv`
+    );
+
+  }
+
+
+  function downloadBlob(
+    blob,
+    fileName
+  ) {
+
+    const url =
+      URL.createObjectURL(blob);
+
+
+    const link =
+      document.createElement('a');
+
+
+    link.href =
+      url;
+
+    link.download =
+      fileName;
+
+
+    document.body
+      .appendChild(link);
+
+
+    link.click();
+
+
+    document.body
+      .removeChild(link);
+
+
+    URL.revokeObjectURL(url);
+
+  }
+
+
+  function downloadCSV() {
+
+    const filteredLog =
+      getFilteredLog();
+
+
+    if (!filteredLog.length) {
+
+      showStatus(
+        'There are no filtered log entries to download.',
+        true
+      );
+
+      return;
+
+    }
+
+
+    const blob =
+      createCSVBlob(
+        filteredLog
+      );
+
+
+    downloadBlob(
+      blob,
+      getExportFileName()
+    );
+
+
+    showStatus(
+      'Filtered CSV downloaded.'
+    );
+
+  }
+
+
+  // =========================================================
+  // SHARE CSV
+  // =========================================================
+
+  async function emailFilteredCSV() {
+
+    const filteredLog =
+      getFilteredLog();
+
+
+    if (!filteredLog.length) {
+
+      showStatus(
+        'There are no filtered log entries to email.',
+        true
+      );
+
+      return;
+
+    }
+
+
+    const fileName =
+      getExportFileName();
+
+
+    const blob =
+      createCSVBlob(
+        filteredLog
+      );
+
+
+    const file =
+      new File(
+
+        [blob],
+
+        fileName,
+
+        {
+          type:
+            'text/csv'
+        }
+
+      );
+
+
+    const subject =
+      'Van Tool Kit Log Export';
+
+
+    const body = [
+
+      'Attached is the filtered Van Tool Kit log export.',
+
+      '',
+
+      `Date from: ${
+        filterDateFromEl.value ||
+        'Beginning'
+      }`,
+
+      `Date to: ${
+        filterDateToEl.value ||
+        'End'
+      }`,
+
+      `Van filter: ${
+        filterToolBoxEl.value ||
+        'All vans'
+      }`,
+
+      `Entries included: ${
+        filteredLog.length
+      }`
+
+    ].join('\n');
+
+
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({
+        files: [file]
+      })
+    ) {
+
+      try {
+
+        await navigator.share({
+
+          title:
+            subject,
+
+          text:
+            body,
+
+          files:
+            [file]
+
+        });
+
+
+        showStatus(
+          'Share sheet opened. Choose your mail app to send the CSV.'
+        );
+
+
+        return;
+
+
+      } catch (error) {
+
+        if (
+          error &&
+          error.name ===
+          'AbortError'
+        ) {
+
+          showStatus(
+            'Email export canceled.',
+            true
+          );
+
+          return;
+
+        }
+
+      }
+
+    }
+
+
+    downloadBlob(
+      blob,
+      fileName
+    );
+
+
+    const mailto =
+
+      `mailto:?subject=${
+        encodeURIComponent(subject)
+      }&body=${
+        encodeURIComponent(
+          body +
+          '\n\nThe CSV file has been downloaded. Attach it to this email before sending.'
+        )
+      }`;
+
+
+    window.location.href =
+      mailto;
+
+
+    showStatus(
+      'CSV downloaded and mail app opened. Attach the downloaded CSV to send it.'
+    );
+
+  }
+
+
+  // =========================================================
+  // CHECKLIST EVENTS
+  // =========================================================
+
+  document.addEventListener(
+    'change',
+    function(e) {
+
+      if (
+        e.target.matches(
+          'input[type="checkbox"], .qty'
+        )
+      ) {
+
+        updateChecklistState();
+
+      }
+
+    }
+  );
+
+
+  document.addEventListener(
+    'input',
+    function(e) {
+
+      if (
+        e.target.matches('.qty')
+      ) {
+
+        updateChecklistState();
+
+      }
+
+    }
+  );
+
+
+  document.addEventListener(
+    'blur',
+    function(e) {
+
+      if (
+        e.target.matches('.qty')
+      ) {
+
+        sanitizeQtyInput(
+          e.target
+        );
+
+        updateChecklistState();
+
+      }
+
+    },
+    true
+  );
+
+
+  // =========================================================
+  // CLICK LOG ENTRY
+  // =========================================================
+
+  logListEl.addEventListener(
+    'click',
+    function(e) {
+
+      const logItem =
+        e.target.closest(
+          '.log-item[data-log-id]'
+        );
+
+
+      if (!logItem) {
+        return;
+      }
+
+
+      selectLogEntry(
+        logItem.dataset.logId
+      );
+
+    }
+  );
+
+
+  // =========================================================
+  // AUTOSAVE NEEDED
+  // =========================================================
+
+  if (neededTextEl) {
+
+    neededTextEl.addEventListener(
+      'input',
+      function() {
+
+        if (!selectedLogId) {
+          return;
+        }
+
+
+        // Capture the current row and current text.
+        // This prevents text from accidentally
+        // saving to another row if the user clicks
+        // a different inspection before the timer ends.
+
+        const logId =
+          selectedLogId;
+
+        const textToSave =
+          neededTextEl.value;
+
+
+        clearTimeout(
+          neededSaveTimer
+        );
+
+
+        if (neededStatusEl) {
+
+          neededStatusEl.textContent =
+            'Typing...';
+
+          neededStatusEl.style.color =
+            'var(--primary-dark)';
+
+        }
+
+
+        neededSaveTimer =
+          setTimeout(
+
+            () =>
+              saveNeededText(
+                logId,
+                textToSave
+              ),
+
+            700
+
+          );
+
+      }
+    );
+
+  }
+
+
+  // =========================================================
+  // FILTER EVENTS
+  // =========================================================
+
+  filterDateFromEl
+    .addEventListener(
+      'change',
+      renderLog
+    );
+
+
+  filterDateToEl
+    .addEventListener(
+      'change',
+      renderLog
+    );
+
+
+  filterToolBoxEl
+    .addEventListener(
+      'change',
+      renderLog
+    );
+
+
+  // =========================================================
+  // INITIAL LOAD
+  // =========================================================
+
+  loadChecklistState();
+
+  updateChecklistState();
+
+  clearNeededSelection();
+
+  loadSupabaseLog();
+
+</script>
 </body>
 </html>
