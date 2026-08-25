@@ -1,0 +1,1430 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Van Tool Kit Log</title>
+  <style>
+    :root {
+      --bg: #eaf6ff;
+      --primary: #4da3ff;
+      --primary-dark: #2d7dd2;
+      --card: rgba(255,255,255,0.72);
+      --text: #1a2a3a;
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --line: rgba(26,42,58,0.12);
+      --good: #1d8f5f;
+      --danger: #c63b5d;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #092B9C, #2DA0ED);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      text-align: center;
+      padding: 28px 20px 18px;
+    }
+
+    .topbar {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .logo {
+      width: min(340px, 78vw);
+      height: min(340px, 78vw);
+      margin: 0 auto 15px;
+      border-radius: 20px;
+      background: #57a4f2;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    .logo img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #fff;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    main {
+      flex: 1;
+      padding: 24px 16px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page-wrap {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      justify-items: center;
+    }
+
+    .container,
+    .log-panel {
+      width: min(920px, 100%);
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .card-subtitle {
+      margin: 0 0 18px;
+      opacity: 0.75;
+      font-size: 14px;
+    }
+
+    .entry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .field input[type="text"],
+    .field input[type="date"],
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 15px;
+      background: rgba(255,255,255,0.88);
+      color: var(--text);
+      outline: none;
+    }
+
+    .field input[type="text"]:focus,
+    .field input[type="date"]:focus,
+    .field select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(77,163,255,.18);
+    }
+
+    .category {
+      max-width: 760px;
+      margin: 0 auto 24px;
+    }
+
+    .category h3 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 17px;
+      color: var(--text);
+    }
+
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .check-item {
+      display: grid;
+      grid-template-columns: auto 1fr 84px;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.74);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 58px;
+    }
+
+    .check-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-dark);
+      margin: 0;
+    }
+
+    .check-item span {
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .qty {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+    }
+
+    .check-item.missing {
+      background: #ffe7ec;
+      border-color: #e7a3b5;
+    }
+
+    .check-item.missing span {
+      color: #a12f4b;
+      font-weight: 700;
+    }
+
+    .check-item.complete {
+      background: rgba(255,255,255,0.74);
+      border-color: var(--line);
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(12px, 2vw, 24px);
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 1000px;
+      margin: 24px auto 0;
+    }
+
+    .btn {
+      width: clamp(140px, 18vw, 190px);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 18px;
+      border: none;
+      border-radius: 24px;
+      background: #57a4f2;
+      color: #fff;
+      box-shadow: 0 12px 30px rgba(60,120,190,.18);
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 36px rgba(60,120,190,.22);
+    }
+
+    .btn span {
+      font-size: clamp(14px, 1.2vw, 18px);
+      font-weight: 700;
+      line-height: 1.2;
+      max-width: 90%;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    .status {
+      margin-top: 18px;
+      min-height: 22px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .log-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .log-count {
+      font-size: 14px;
+      opacity: .75;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+      align-items: end;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-inline {
+      width: auto;
+      aspect-ratio: auto;
+      min-height: 50px;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 14px;
+      box-shadow: 0 8px 22px rgba(60,120,190,.14);
+    }
+
+    .log-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .log-item {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .log-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .serial {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #dcebff;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 4px 6px 0 0;
+      border: 1px solid rgba(77,163,255,.25);
+    }
+
+    .meta {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    .small-title {
+      margin: 10px 0 6px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--primary-dark);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 26px 18px;
+      border: 1px dashed rgba(26,42,58,0.18);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.45);
+      font-size: 14px;
+      opacity: .85;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      opacity: 0.85;
+      color: rgba(255,255,255,0.92);
+    }
+
+    @media (max-width: 900px) {
+      .entry-grid,
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .checklist-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 22px 16px 12px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      main {
+        padding: 16px 12px 32px;
+      }
+
+      .container,
+      .log-panel {
+        padding: 16px;
+      }
+
+      .btn {
+        width: 100%;
+        aspect-ratio: auto;
+        min-height: 74px;
+        border-radius: 18px;
+      }
+
+      .check-item {
+        grid-template-columns: auto 1fr;
+      }
+
+      .qty {
+        grid-column: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="logo.png" alt="Logo">
+    </div>
+
+    <div class="topbar">
+      <button class="btn secondary" style="width:auto;aspect-ratio:auto;padding:14px 24px;" onclick="location.href='Main Menu.html'">
+        <span>Return Home</span>
+      </button>
+    </div>
+
+    <h1>Van Tool Kit Log</h1>
+    <div class="subtitle">Inspection form, Saved log, and Log Export</div>
+  </header>
+
+  <main>
+    <div class="page-wrap">
+      <section class="container">
+        <h2 class="card-title">Checklist</h2>
+        <p class="card-subtitle">Check items, adjust quantity, and add the current inspection to the running log.</p>
+
+        <div class="entry-grid">
+          <div class="field">
+            <label for="serialNumber">Van FA Number</label>
+            <select id="serialNumber" onchange="autoFillCrew()">
+              <option value="">Select Tool Box Number</option>
+              <option value="FA-5046">FA-5046</option>
+              <option value="FA-5047">FA-5047</option>
+              <option value="FA-5026">FA-5026</option>
+          
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="crewMember">Crew Member Name</label>
+            <input id="crewMember" type="text" placeholder="Enter crew member name">
+          </div>
+
+          <div class="field">
+            <label for="entryDate">Date</label>
+            <input id="entryDate" type="date">
+          </div>
+        </div>
+
+        <div id="toolChecklist">
+
+          <div class="category">
+  <h3>Misc</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="Blue Jump Start/Battery Charger">
+      <span>Blue Jump Start/Battery Charger</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Honda Invertor Generator">
+      <span>Honda Invertor Generator</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Jumper Cables">
+      <span>Jumper Cables</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Extension Cord 40-50m">
+      <span>Extension Cord 40-50m</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Portable Folding Work Desk">
+      <span>Portable Folding Work Desk</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Roll Screen Limit Switch Set">
+      <span>Roll Screen Limit Switch Set</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Salco Cooler Door Installation Kit">
+      <span>Salco Cooler Door Installation Kit</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+  </div>
+</div>
+
+
+<div class="category">
+  <h3>Measuring & Layout</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="Laser Level">
+      <span>Laser Level</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Laser Measure">
+      <span>Laser Measure</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Spirit Level 6'">
+      <span>Spirit Level 6'</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Tape Measure 100m Steel">
+      <span>Tape Measure 100m Steel</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+  </div>
+</div>
+
+
+<div class="category">
+  <h3>Cutting Tools</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="Bolt Cutter">
+      <span>Bolt Cutter</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Glass Cutter">
+      <span>Glass Cutter</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="HeiberScheinder Cloth Cutter + Case">
+      <span>HeiberScheinder Cloth Cutter + Case</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+  </div>
+</div>
+
+
+<div class="category">
+  <h3>M12 Power Tools</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="M12 16 Gauge Variable Speed Nibbler 2476-20">
+      <span>M12 16 Gauge Variable Speed Nibbler 2476-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M12 Rivet Tool Kit MIL2550-22">
+      <span>M12 Rivet Tool Kit MIL2550-22</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M12 X.O.6 Battery">
+      <span>M12 X.O.6 Battery</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+  </div>
+</div>
+
+
+<div class="category">
+  <h3>M18 Power Tools</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 14 Gauge Double Cut Shear 2636-20">
+      <span>M18 14 Gauge Double Cut Shear 2636-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Air Compressor + Hose">
+      <span>M18 Air Compressor + Hose</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Caulking Gun 2540-20">
+      <span>M18 Caulking Gun 2540-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Concrete Drill 2713-20">
+      <span>M18 Concrete Drill 2713-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 FUEL Blower 2724-20">
+      <span>M18 FUEL Blower 2724-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Grinder 2981-20">
+      <span>M18 Grinder 2981-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Heavy Duty Impact 2767">
+      <span>M18 Heavy Duty Impact 2767</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Impact ½” MIL2855-20">
+      <span>M18 Impact ½” MIL2855-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Jig Saw">
+      <span>M18 Jig Saw</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Magnetic Light">
+      <span>M18 Magnetic Light</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Metal Cutting Circular Saw 2982-20/2631-20">
+      <span>M18 Metal Cutting Circular Saw 2982-20/2631-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Multi Charger 48-59-1806/48-59-1807">
+      <span>M18 Multi Charger 48-59-1806/48-59-1807</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Sawzall 2821-20">
+      <span>M18 Sawzall 2821-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 Vacuum 0970-20">
+      <span>M18 Vacuum 0970-20</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="M18 XC12.0 Battery">
+      <span>M18 XC12.0 Battery</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+  </div>
+</div>
+
+
+<div class="category">
+  <h3>Storage / PACKOUT</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="Milwaukee PACKOUT 48-22-8429">
+      <span>Milwaukee PACKOUT 48-22-8429</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Milwaukee PACKOUT 48-22-8443">
+      <span>Milwaukee PACKOUT 48-22-8443</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Milwaukee PACKOUT Plate 48-22-8485">
+      <span>Milwaukee PACKOUT Plate 48-22-8485</span>
+      <input type="number" class="qty" min="0" step="1" value="3">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Milwaukee PACKOUT 48-22-8445">
+      <span>Milwaukee PACKOUT 48-22-8445</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+  </div>
+</div>
+
+
+<div class="category">
+  <h3>Hand Tools / Installation</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="Manual Caulking Gun">
+      <span>Manual Caulking Gun</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Silicone Gun">
+      <span>Silicone Gun</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Quick Clamp">
+      <span>Quick Clamp</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Suction Cup">
+      <span>Suction Cup</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+  </div>
+</div>
+
+
+<div class="category">
+  <h3>Sockets & Wrenches</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="Socket Set Imperial/Metric Sizes 6mm-41mm Impact Rated">
+      <span>Socket Set Imperial/Metric Sizes 6mm-41mm Impact Rated</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Wrench 24mm">
+      <span>Wrench 24mm</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Wrench 27mm">
+      <span>Wrench 27mm</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Wrench 30mm">
+      <span>Wrench 30mm</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Wrench 32mm">
+      <span>Wrench 32mm</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Wrench 36mm">
+      <span>Wrench 36mm</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Wrench 41mm">
+      <span>Wrench 41mm</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+  </div>
+</div>
+
+
+<div class="category">
+  <h3>Consumables</h3>
+  <div class="checklist-grid">
+
+    <label class="check-item">
+      <input type="checkbox" value="Pack Grinder Blades">
+      <span>Pack Grinder Blades</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Pack of Gloves">
+      <span>Pack of Gloves</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Pack of Markers">
+      <span>Pack of Markers</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Pack of Sawzall Blades">
+      <span>Pack of Sawzall Blades</span>
+      <input type="number" class="qty" min="0" step="1" value="1">
+    </label>
+
+    <label class="check-item">
+      <input type="checkbox" value="Saw Blades">
+      <span>Saw Blades</span>
+      <input type="number" class="qty" min="0" step="1" value="2">
+    </label>
+
+  </div>
+</div>
+
+        <div class="button-row">
+          <button class="btn" onclick="addEntry()"><span>Add Entry to Log</span></button>
+          <button class="btn secondary" onclick="clearChecklist()"><span>Clear Checklist</span></button>
+          <button class="btn" onclick="checkAllItems()"><span>Tool Kit Complete</span></button>
+        </div>
+
+        <div class="status" id="statusMsg"></div>
+      </section>
+
+      <section class="log-panel">
+        <div class="log-head">
+          <div>
+            <h2 class="card-title" style="margin-bottom:4px;">Inspection Log</h2>
+            <div class="log-count" id="logCount">0 entries shown</div>
+          </div>
+        </div>
+
+        <div class="filter-grid">
+          <div class="field">
+            <label for="filterDateFrom">Filter Date From</label>
+            <input id="filterDateFrom" type="date">
+          </div>
+
+          <div class="field">
+            <label for="filterDateTo">Filter Date To</label>
+            <input id="filterDateTo" type="date">
+          </div>
+
+          <div class="field">
+            <label for="filterToolBox">Filter by Van FA Number</label>
+            <select id="filterToolBox">
+              <option value="">All Vans</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Filter Actions</label>
+            <div class="filter-actions">
+              <button class="btn secondary btn-inline" onclick="clearFilters()"><span>Clear Filters</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="log-list" id="logList"></div>
+
+        <div class="button-row">
+          <button class="btn secondary" onclick="downloadCSV()"><span>Download Log</span></button>
+          <button class="btn" onclick="emailFilteredCSV()"><span>Share Filtered Log</span></button>
+           <button class="btn secondary" style="width:auto;aspect-ratio:auto;padding:14px 24px;" onclick="location.href='Main Menu.html'"><span>Return Home</span></button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>Van Tool Kit Log</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL = "https://xlocuvsgpvfglpmvtekc.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_wqFCN6y-w6T7cft5PUCfRw_001kKWLY";
+
+    const supabaseClient = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+  </script>
+
+  <script>
+    const CHECKLIST_STATE_KEY = 'vanToolChecklistState_v1';
+
+    // Running inspection log is loaded from Supabase.
+    let supabaseLog = [];
+
+    const serialNumberEl = document.getElementById('serialNumber');
+    const crewMemberEl = document.getElementById('crewMember');
+    const entryDateEl = document.getElementById('entryDate');
+    const logListEl = document.getElementById('logList');
+    const logCountEl = document.getElementById('logCount');
+    const statusMsgEl = document.getElementById('statusMsg');
+    const filterDateFromEl = document.getElementById('filterDateFrom');
+    const filterDateToEl = document.getElementById('filterDateTo');
+    const filterToolBoxEl = document.getElementById('filterToolBox');
+
+    const toolboxMap = {
+      "FA-5046": "U/A",
+      "FA-5047": "U/A",
+      "FA-5026": "U/A"
+    };
+
+    entryDateEl.value = new Date().toISOString().split('T')[0];
+
+    function getChecklistItems() {
+      return [...document.querySelectorAll('.check-item')];
+    }
+
+    function sanitizeQtyInput(input) {
+      let value = parseInt(input.value, 10);
+      if (isNaN(value) || value < 0) value = 0;
+      input.value = value;
+      return value;
+    }
+
+    function updateChecklistState() {
+      getChecklistItems().forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const qty = item.querySelector('.qty');
+        const qtyValue = sanitizeQtyInput(qty);
+
+        item.classList.remove('missing', 'complete');
+
+        if (checkbox.checked && qtyValue > 0) {
+          item.classList.add('complete');
+        } else {
+          item.classList.add('missing');
+        }
+      });
+    }
+
+    function showStatus(message, isError = false) {
+      statusMsgEl.textContent = message;
+      statusMsgEl.style.color = isError ? 'var(--danger)' : 'var(--good)';
+
+      if (message) {
+        setTimeout(() => {
+          if (statusMsgEl.textContent === message) {
+            statusMsgEl.textContent = '';
+          }
+        }, 3200);
+      }
+    }
+
+    function autoFillCrew() {
+      const toolbox = serialNumberEl.value;
+      crewMemberEl.value = toolboxMap[toolbox] || '';
+    }
+
+    function clearChecklist() {
+      getChecklistItems().forEach(item => {
+        item.querySelector('input[type="checkbox"]').checked = false;
+        item.querySelector('.qty').value = 1;
+      });
+
+      serialNumberEl.value = '';
+      crewMemberEl.value = '';
+      entryDateEl.value = new Date().toISOString().split('T')[0];
+      updateChecklistState();
+      showStatus('Checklist cleared.');
+    }
+
+    function checkAllItems() {
+      getChecklistItems().forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const qty = item.querySelector('.qty');
+
+        checkbox.checked = true;
+        if (!qty.value || Number(qty.value) < 1) {
+          qty.value = 1;
+        }
+      });
+
+      updateChecklistState();
+      showStatus('All items checked.');
+    }
+
+    function saveChecklistState() {
+      const state = {
+        serialNumber: serialNumberEl.value.trim(),
+        crewMember: crewMemberEl.value.trim(),
+        entryDate: entryDateEl.value,
+        items: getChecklistItems().map(item => {
+          const checkbox = item.querySelector('input[type="checkbox"]');
+          const qty = item.querySelector('.qty');
+          return {
+            name: checkbox.value,
+            checked: checkbox.checked,
+            qty: sanitizeQtyInput(qty)
+          };
+        })
+      };
+
+      localStorage.setItem(CHECKLIST_STATE_KEY, JSON.stringify(state));
+      showStatus('Checklist saved.');
+    }
+
+    function loadChecklistState() {
+      const raw = localStorage.getItem(CHECKLIST_STATE_KEY);
+      if (!raw) return;
+
+      try {
+        const state = JSON.parse(raw);
+        serialNumberEl.value = state.serialNumber || '';
+        crewMemberEl.value = state.crewMember || '';
+        entryDateEl.value = state.entryDate || new Date().toISOString().split('T')[0];
+
+        const map = new Map((state.items || []).map(item => [item.name, item]));
+
+        getChecklistItems().forEach(item => {
+          const checkbox = item.querySelector('input[type="checkbox"]');
+          const qty = item.querySelector('.qty');
+          const saved = map.get(checkbox.value);
+
+          if (saved) {
+            checkbox.checked = !!saved.checked;
+            qty.value = Number.isFinite(saved.qty) ? saved.qty : 1;
+          }
+        });
+
+        updateChecklistState();
+      } catch {
+        showStatus('Saved checklist could not be loaded.', true);
+      }
+    }
+
+    function getLog() {
+      return supabaseLog;
+    }
+
+    async function loadSupabaseLog(showLoading = true) {
+      if (showLoading) {
+        logCountEl.textContent = 'Loading entries...';
+        logListEl.innerHTML = '<div class="empty">Loading inspection log from Supabase...</div>';
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('van_tool_kit_logs')
+          .select('id, serial_number, crew_member, entry_date, missing_items, created_at')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Supabase log load error:', error);
+          supabaseLog = [];
+          logCountEl.textContent = '0 entries shown';
+          logListEl.innerHTML =
+            '<div class="empty">Could not load the inspection log from Supabase.</div>';
+          showStatus('Could not load Supabase log: ' + error.message, true);
+          return;
+        }
+
+        supabaseLog = (data || []).map(row => ({
+          id: row.id,
+          serialNumber: row.serial_number || '',
+          crewMember: row.crew_member || '',
+          entryDate: row.entry_date || '',
+          missingItems: Array.isArray(row.missing_items) ? row.missing_items : [],
+          createdAt: row.created_at || ''
+        }));
+
+        renderLog();
+
+      } catch (error) {
+        console.error('Unexpected Supabase log load error:', error);
+        supabaseLog = [];
+        logCountEl.textContent = '0 entries shown';
+        logListEl.innerHTML =
+          '<div class="empty">Could not connect to Supabase to load the inspection log.</div>';
+        showStatus('Could not connect to Supabase.', true);
+      }
+    }
+
+    function collectFormData() {
+      const serialNumber = serialNumberEl.value.trim();
+      const crewMember = crewMemberEl.value.trim();
+      const entryDate = entryDateEl.value;
+
+      const missingItems = getChecklistItems()
+        .map(item => {
+          const checkbox = item.querySelector('input[type="checkbox"]');
+          const qty = item.querySelector('.qty');
+          return {
+            name: checkbox.value,
+            checked: checkbox.checked,
+            qty: sanitizeQtyInput(qty)
+          };
+        })
+        .filter(item => !item.checked || item.qty === 0)
+        .map(item => ({
+          name: item.name,
+          qty: item.qty
+        }));
+
+      return { serialNumber, crewMember, entryDate, missingItems };
+    }
+
+    async function addEntry() {
+      const { serialNumber, crewMember, entryDate, missingItems } = collectFormData();
+
+      if (!serialNumber || !crewMember || !entryDate) {
+        showStatus('Please fill in van FA number, crew member name, and date.', true);
+        return;
+      }
+
+      showStatus('Saving inspection...');
+
+      try {
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+        if (userError || !userData.user) {
+          console.error('Supabase user error:', userError);
+          showStatus('You must be logged in to save an inspection.', true);
+          return;
+        }
+
+        const loggedInUser = userData.user;
+
+        const { error: insertError } = await supabaseClient
+          .from('van_tool_kit_logs')
+          .insert({
+            user_id: loggedInUser.id,
+            serial_number: serialNumber,
+            crew_member: crewMember,
+            entry_date: entryDate,
+            missing_items: missingItems
+          });
+
+        if (insertError) {
+          console.error('Supabase insert error:', insertError);
+          showStatus('Could not save inspection: ' + insertError.message, true);
+          return;
+        }
+
+        // Reload the running log directly from Supabase so every device
+        // sees the same database-backed inspection history.
+        await loadSupabaseLog(false);
+        saveChecklistState();
+
+        showStatus('✓ Inspection saved successfully.');
+
+      } catch (error) {
+        console.error('Unexpected Supabase error:', error);
+        showStatus('Could not connect to Supabase.', true);
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getFilteredLog() {
+      const log = getLog();
+      const filterDateFrom = filterDateFromEl.value;
+      const filterDateTo = filterDateToEl.value;
+      const filterToolBox = filterToolBoxEl.value.trim().toLowerCase();
+
+      return log.filter(entry => {
+        const entryDate = entry.entryDate || '';
+        const matchesFrom = !filterDateFrom || entryDate >= filterDateFrom;
+        const matchesTo = !filterDateTo || entryDate <= filterDateTo;
+        const matchesToolBox =
+          !filterToolBox ||
+          String(entry.serialNumber || '').trim().toLowerCase() === filterToolBox;
+
+        return matchesFrom && matchesTo && matchesToolBox;
+      });
+    }
+
+    function populateToolBoxFilter(selectedValue = '') {
+      const log = getLog();
+      const serials = [...new Set(
+        log.map(entry => String(entry.serialNumber || '').trim()).filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+      filterToolBoxEl.innerHTML =
+        '<option value="">All Vans</option>' +
+        serials.map(serial => `<option value="${escapeHtml(serial)}">${escapeHtml(serial)}</option>`).join('');
+
+      if (selectedValue && serials.includes(selectedValue)) {
+        filterToolBoxEl.value = selectedValue;
+      }
+    }
+
+    function renderLog() {
+      const selectedToolBox = filterToolBoxEl.value;
+      populateToolBoxFilter(selectedToolBox);
+
+      const filteredLog = getFilteredLog();
+      logCountEl.textContent = `${filteredLog.length} entr${filteredLog.length === 1 ? 'y' : 'ies'} shown`;
+
+      if (!filteredLog.length) {
+        logListEl.innerHTML = '<div class="empty">No entries match the selected filters.</div>';
+        return;
+      }
+
+      logListEl.innerHTML = filteredLog.map(entry => {
+        const missing = entry.missingItems?.length
+          ? entry.missingItems.map(item =>
+              `<span class="pill">${escapeHtml(item.name)}${item.qty > 1 ? ` × ${item.qty}` : ''}</span>`
+            ).join('')
+          : '<div class="meta"><strong>Complete</strong></div>';
+
+        return `
+          <div class="log-item">
+            <div class="log-item-top">
+              <div class="serial">${escapeHtml(entry.serialNumber)}</div>
+              <span class="pill">${escapeHtml(entry.entryDate)}</span>
+            </div>
+            <div class="meta"><strong>Crew Member:</strong> ${escapeHtml(entry.crewMember)}</div>
+            <div class="small-title">Missing Items</div>
+            <div>${missing}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearFilters() {
+      filterDateFromEl.value = '';
+      filterDateToEl.value = '';
+      filterToolBoxEl.value = '';
+      renderLog();
+      showStatus('Log filters cleared.');
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? '');
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function buildCSVContent(entries) {
+      const headers = [
+        'Van FA Number',
+        'Crew Member Name',
+        'Date',
+        'Missing Items / Status',
+        'Created At'
+      ];
+
+      const rows = entries.map(entry => {
+        const missingItems = entry.missingItems || [];
+        const checklistStatus = missingItems.length
+          ? missingItems.map(item => `${item.name}${item.qty > 1 ? ` x${item.qty}` : ''}`).join(' | ')
+          : 'Complete';
+
+        return [
+          entry.serialNumber,
+          entry.crewMember,
+          entry.entryDate,
+          checklistStatus,
+          entry.createdAt
+        ];
+      });
+
+      return [headers, ...rows]
+        .map(row => row.map(csvEscape).join(','))
+        .join('\n');
+    }
+
+    function createCSVBlob(entries) {
+      const csvContent = buildCSVContent(entries);
+      return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    }
+
+    function getExportFileName() {
+      const fromPart = filterDateFromEl.value || 'start';
+      const toPart = filterDateToEl.value || 'end';
+      const toolBoxPart = (filterToolBoxEl.value || 'all-tool-boxes').replace(/[^a-z0-9_-]+/gi, '_');
+
+      return `van_tool_kit_log_${toolBoxPart}_${fromPart}_to_${toPart}.csv`;
+    }
+
+    function downloadBlob(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadCSV() {
+      const filteredLog = getFilteredLog();
+
+      if (!filteredLog.length) {
+        showStatus('There are no filtered log entries to download.', true);
+        return;
+      }
+
+      const blob = createCSVBlob(filteredLog);
+      downloadBlob(blob, getExportFileName());
+      showStatus('Filtered CSV downloaded.');
+    }
+
+    async function emailFilteredCSV() {
+      const filteredLog = getFilteredLog();
+
+      if (!filteredLog.length) {
+        showStatus('There are no filtered log entries to email.', true);
+        return;
+      }
+
+      const fileName = getExportFileName();
+      const blob = createCSVBlob(filteredLog);
+      const file = new File([blob], fileName, { type: 'text/csv' });
+      const subject = 'Van Tool Kit Log Export';
+      const body = [
+        'Attached is the filtered Van Tool Kit log export.',
+        '',
+        `Date from: ${filterDateFromEl.value || 'Beginning'}`,
+        `Date to: ${filterDateToEl.value || 'End'}`,
+        `Tool box filter: ${filterToolBoxEl.value || 'All vans'}`,
+        `Entries included: ${filteredLog.length}`
+      ].join('\n');
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: subject,
+            text: body,
+            files: [file]
+          });
+          showStatus('Share sheet opened. Choose your mail app to send the CSV.');
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') {
+            showStatus('Email export canceled.', true);
+            return;
+          }
+        }
+      }
+
+      downloadBlob(blob, fileName);
+      const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + '\n\nThe CSV file has been downloaded. Attach it to this email before sending.')}`;
+      window.location.href = mailto;
+      showStatus('CSV downloaded and mail app opened. Attach the downloaded CSV to send it.');
+    }
+
+    document.addEventListener('change', function(e) {
+      if (e.target.matches('input[type="checkbox"], .qty')) {
+        updateChecklistState();
+      }
+    });
+
+    document.addEventListener('input', function(e) {
+      if (e.target.matches('.qty')) {
+        updateChecklistState();
+      }
+    });
+
+    document.addEventListener('blur', function(e) {
+      if (e.target.matches('.qty')) {
+        sanitizeQtyInput(e.target);
+        updateChecklistState();
+      }
+    }, true);
+
+    filterDateFromEl.addEventListener('change', renderLog);
+    filterDateToEl.addEventListener('change', renderLog);
+    filterToolBoxEl.addEventListener('change', renderLog);
+
+    loadChecklistState();
+    updateChecklistState();
+    loadSupabaseLog();
+  </script>
+</body>
+</html>
